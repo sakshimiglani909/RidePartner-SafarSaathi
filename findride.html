@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safar Dhundein | RidePartner Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --yankees-blue: #0D273D; --teal-blue: #3E6985; --bg: #F1F5F9; --accent: #059669; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding-bottom: 80px; color: var(--yankees-blue); }
+        .header { background: var(--yankees-blue); color: white; padding: 25px 20px 50px 20px; border-radius: 0 0 35px 35px; text-align: center; }
+        .container { max-width: 450px; margin: -40px auto 20px auto; padding: 0 15px; }
+        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 12px 30px rgba(13, 39, 61, 0.08); border: 1.5px solid #E2E8F0; }
+        h4 { font-size: 11px; text-transform: uppercase; color: var(--teal-blue); margin: 0 0 15px 0; letter-spacing: 1px; font-weight: 700; }
+        select, input { width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 16px; font-size: 14px; margin-bottom: 12px; outline: none; background: #fff; box-sizing: border-box; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-search { width: 100%; padding: 18px; background: var(--teal-blue); color: white; border: none; border-radius: 18px; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .ride-item { background: white; padding: 18px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--teal-blue); position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.03); cursor: pointer; }
+        .fare-badge { position: absolute; top: 18px; right: 18px; background: #DCFCE7; color: #166534; padding: 5px 12px; border-radius: 10px; font-weight: 800; font-size: 14px; }
+        #noRideModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 25px; text-align: center; max-width: 320px; }
+        .sos-btn { position: fixed; bottom: 20px; right: 20px; background: #e11d48; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 1000; animation: pulse 2s infinite; border: 3px solid white; cursor: pointer; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(225, 29, 72, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } }
+    </style>
+    
+</head>
+
+<body>
+
+<div class="header">
+    <h2 style="margin:0;">Safar Dhundein</h2>
+    <p style="margin:5px 0 0 0; font-size: 12px; opacity: 0.8;">RidePartner Pro - Madhya Pradesh</p>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h4>🔍 Route & Date</h4>
+        <form id="searchForm">
+            <div class="row">
+                <select id="fDist" onchange="updateBlocks('f')" required>
+                    <option value="">Pickup District</option>
+                </select>
+                <select id="fBlock" required>
+                    <option value="">Pickup Block</option>
+                </select>
+            </div>
+            <div class="row">
+                <select id="tDist" onchange="updateBlocks('t')" required>
+                    <option value="">Drop District</option>
+                </select>
+                <select id="tBlock" required>
+                    <option value="">Drop Block</option>
+                </select>
+            </div>
+            <input type="date" id="searchDate" required>
+            <button type="submit" class="btn-search">Search Safar</button>
+        </form>
+    </div>
+
+    <div id="resultsTitle" style="margin: 25px 0 15px 5px; font-weight: 700; display: none;">Available Rides:</div>
+    <div id="rideResults"></div>
+</div>
+
+<div class="sos-btn" onclick="window.location.href='tel:100'">SOS</div>
+
+<div id="noRideModal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="color:#0D273D;">Notice</h3>
+        <p id="modalMsg" style="font-size: 13px; color: #64748B;"></p>
+        <button onclick="closeModal()" class="btn-search">OK</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+/* -------------------------------
+   LOCATION DATA
+--------------------------------*/
+const locationData = {
+ 
+  "Agar Malwa": ["Agar","Badod","Nalkheda","Susner"],
+  "Alirajpur": ["Alirajpur", "Jobat", "Sondwa", "Udaigarh", "Chandra Shekhar Azad Nagar (Bhabhra)", " Kathiwada"],
+  "Anuppur": ["Anuppur", "Jaithari", "Kotma", "Pushprajgarh"],
+  "Ashoknagar": ["Ashoknagar", "Chanderi", "Isagarh", "Mungaoli"],
+  "Balaghat": ["Balaghat", "Baihar", "Birsa", "Katangi", "Kirnapur", "Lanji", "Paraswada", "Waraseoni"],
+  "Barwani": ["Barwani", "Anjad", "Niwali", "Pati", "Rajpur", "Sendhwa"],
+  "Betul": ["Betul", "Amla", "Athner", "Bhainsdehi", "Chicholi", "Ghoda Dongri", "Multai", "Prabhat Pattan", "Shahpur"],
+  "Bhind": ["Bhind", "Ater", "Bhitarwar", "Gohad", "Lahar", "Mehgaon", "Raon"],
+  "Bhopal": ["Huzur", "Berasia", "Phanda"],
+  "Burhanpur": ["Burhanpur", "Khaknar"],
+  "Chhatarpur": ["Bada Malhera", "Bijawar", "Buxwaha", "Chhatarpur", "Gaurihar", "Laundi", "Nowgong", "Rajnagar"],
+  "Chhindwara": ["Amarwara", "Bichhua", "Chaurai", "Chhindwara", "Harrai", "Jamai", "Mohkhed", "Pandhurna", "Parasia", "Sausar", "Tamia"],
+  
+  "Damoh": ["Batiyagarh", "Damoh", "Hatta", "Jabera", "Patharia", "Tendukheda"],
+  "Datia": ["Bhander", "Datia", "Seondha"],
+  "Dewas": ["Bagli", "Dewas", "Kannod", "Khategaon", "Sonkatch"],
+  "Dhar": ["Badnawar", "Dhar", "Dharampuri", "Gandhwani", "Kukshi", "Manawar", "Nalchha", "Sardarpur", "Tirla"],
+  "Dindori": ["Dindori", "Bajag", "Karanjiya", "Mehandwani", "Samnapur", "Shahpura"],
+  
+  "Guna": ["Aron", "Bamori", "Chachaura", "Guna", "Raghogarh"],
+  "Gwalior": ["Bhitarwar", "Dabra", "Ghatigaon", "Morar"],
+  
+  "Harda": ["Harda", "Khirkiya", "Timarni"],
+  "Indore": ["Depalpur", "Indore", "Mhow", "Sanwer"],
+  
+  "Jabalpur": ["Jabalpur", "Kundam", "Majholi", "Panagar", "Patan", "Shahpura", "Sihora"],
+  "Jhabua": ["Jhabua", "Meghnagar", "Petlawad", "Ranapur", "Rama", "Thandla"],
+  
+  "Katni": ["Badwara", "Bahoriband", "Dhimarkheda", "Katni", "Rithi", "Vijayraghavgarh"],
+  "Khandwa": ["Baladi", "Chhaigaon Makhan", "Harsud", "Khalwa", "Khandwa", "Pandhana"],
+  "Khargone": ["Barwah", "Bhagwanpura", "Bhikangaon", "Gogaon", "Jhirnya", "Kasrawad", "Khargone", "Maheshwar", "Segaon", "Ziranya"],
+  
+  "Maihar": ["Maihar", "Amarpatan", "Ramnagar"],
+  "Mandla": ["Bichhiya", "Ghughri", "Mandla", "Mawai", "Nainpur", "Narayanganj"],
+  "Mandsaur": ["Bhanpura", "Garoth", "Malhargarh", "Mandsaur", "Sitamau"],
+  "Morena": ["Ambah", "Joura", "Kailaras", "Morena", "Porsa", "Sabalgarh"],
+  "Narmadapuram": ["Narmadapuram", "Itarsi", "Seoni Malwa", "Makhan Nagar", "Sohagpur", "Pipariya", "Bankhedi"],
+  "Narsinghpur": ["Babai Chichli", "Chawarpatha", "Gadarwara", "Gotegaon", "Kareli", "Narsinghpur", "Saikheda"],
+  "Neemuch": ["Jawad", "Manasa", "Neemuch"],
+  "Niwari": ["Niwari", "Orchha", "Prithvipur"],
+  
+  "Panna": ["Ajaigarh", "Gunour", "Panna", "Pawai", "Shahnagar"],
+  "Pandhurna": ["Pandhurna", "Sausar"],
+  
+  "Raisen": ["Begumganj", "Gairatganj", "Obedullaganj", "Raisen", "Sanchi", "Silwani", "Udaipura"],
+  "Rajgarh": ["Biaora", "Jirapur", "Khilchipur", "Narsinghgarh", "Rajgarh", "Sarangpur"],
+  "Ratlam": ["Alot", "Bajna", "Jaora", "Piploda", "Ratlam", "Sailana"],
+  "Rewa": ["Gangev", "Hanumana", "Jawa", "Mauganj", "Naigarhi", "Raipur Karchuliyan", "Rewa", "Sirmour", "Teonthar"],
+  
+  "Sagar": ["Banda", "Bina", "Deori", "Jaisinagar", "Khurai", "Malthone", "Rahatgarh", "Rehli", "Sagar", "Shahgarh"],
+  "Satna": ["Amarpatan", "Maihar", "Nagod", "Ramnagar", "Rampur Baghelan", "Satna", "Sohawal", "Unchehara"],
+  "Sehore": ["Ashta", "Budni", "Ichhawar", "Jawar", "Nasrullaganj", "Sehore"],
+  "Seoni": ["Barghat", "Chhapara", "Dhanora", "Ghansaur", "Kurai", "Lakhnadon", "Seoni"],
+  "Shahdol": ["Beohari", "Burhar", "Gohparu", "Jaisinghnagar", "Shahdol", "Sohagpur"],
+  "Shajapur": ["Agar", "Badod", "Gulana", "Kalapipal", "Moman Badodia", "Shajapur", "Shujalpur"],
+  "Sheopur": ["Badoda", "Karahal", "Sheopur", "Vijaypur"],
+  "Shivpuri": ["Badarwas", "Karera", "Khaniyadhana", "Kolaras", "Narwar", "Pichhore", "Pohri", "Shivpuri"],
+  "Sidhi": ["Chitrangi", "Gopad Banas", "Kusmi", "Majhauli", "Rampur Naikin", "Sihawal", "Sidhi"],
+  "Singrauli": ["Baidhan", "Chitrangi", "Deosar"],
+  "Tikamgarh": ["Baldevgarh", "Jatara", "Niwari", "Palera", "Prithvipur", "Tikamgarh"],
+
+ 
+  "Ujjain": ["Badnagar", "Ghatiya", "Khachrod", "Mahidpur", "Tarana", "Ujjain"],
+  
+  "Umaria": ["Bandhavgarh", "Karkeli", "Manpur", "Pali"],
+  
+  "Vidisha": ["Basoda", "Ganj Basoda", "Gyaraspur", "Kurwai", "Lateri", "Nateran", "Sironj", "Vidisha"]
+};
+
+/* -------------------------------
+   FIREBASE INIT
+--------------------------------*/
+const firebaseConfig = {
+  apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+  authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+  projectId: "ridepartner-safarsaathi-9ccb2",
+  storageBucket: "ridepartner-safarsaathi-9ccb2.firebasestorage.app",
+  messagingSenderId: "79836817761",
+  appId: "1:79836817761:web:d59c72958158931868fd20"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+/* -------------------------------
+   AUTH CHECK & DROPDOWNS
+--------------------------------*/
+firebase.auth().onAuthStateChanged((user) => {
+    if (!user) {
+        alert("Safar dhoondne ke liye login karna anivarya hai.");
+        window.location.href = "login.html"; 
+    } else {
+        initDropdowns();
+    }
+});
+
+function initDropdowns() {
+    const fD = document.getElementById('fDist');
+    const tD = document.getElementById('tDist');
+    Object.keys(locationData).sort().forEach(d => {
+        let opt = `<option value="${d}">${d}</option>`;
+        fD.innerHTML += opt;
+        tD.innerHTML += opt;
+    });
+    document.getElementById('searchDate').min = new Date().toISOString().split('T')[0];
+}
+
+function updateBlocks(type) {
+    const dist = document.getElementById(type + 'Dist').value;
+    const blockSel = document.getElementById(type + 'Block');
+    blockSel.innerHTML = '<option value="">Block</option>';
+    if (locationData[dist]) {
+        locationData[dist].sort().forEach(b => {
+            blockSel.innerHTML += `<option value="${b}">${b}</option>`;
+        });
+    }
+}
+
+/* -------------------------------
+   SEARCH LOGIC
+--------------------------------*/
+
+// --- YAHAN SE REPLACE KAREIN ---
+
+// 1. Search Form Submit hone par
+document.getElementById('searchForm').onsubmit = (e) => {
+    e.preventDefault();
+    const fDist = document.getElementById('fDist').value;
+    const fBlock = document.getElementById('fBlock').value;
+    const tDist = document.getElementById('tDist').value;
+    const tBlock = document.getElementById('tBlock').value;
+    const date = document.getElementById('searchDate').value;
+    
+    // Rides dhoondna shuru karein
+    setupLiveRides(fDist, fBlock, tDist, tBlock, date);
+};
+
+// 2. Rides ko Live dhoondne ka logic
+function setupLiveRides(fDist, fBlock, tDist, tBlock, date) {
+    const user = firebase.auth().currentUser;
+    const resultsDiv = document.getElementById('rideResults');
+    const titleDiv = document.getElementById('resultsTitle');
+
+    resultsDiv.innerHTML = '<p style="text-align:center; padding:20px;">🔍 Safar dhoond rahe hain...</p>';
+
+    // Purana listener clear karein agar koi chal raha ho
+    if (window.rideListener) window.rideListener();
+
+    // Database se match hone wali rides uthayein
+    window.rideListener = db.collection("rides")
+        .where("fromDist", "==", fDist)
+        .where("fromBlock", "==", fBlock)
+        .where("toDist", "==", tDist)
+        .where("toBlock", "==", tBlock)
+        .where("date", "==", date)
+        .where("status", "==", "Active") // Sabse zaroori: Post page se match hona chahiye
+        .onSnapshot(snap => {
+            if (!snap.empty) {
+                // Sirf dusre drivers ki ride dikhayein (apni nahi)
+                const filtered = snap.docs.filter(doc => doc.data().driverId !== user.uid);
+                
+                if(filtered.length > 0) {
+                    renderRides(filtered, "🎯 Aapke Route ke Live Safar:");
+                } else {
+                    resultsDiv.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">Aapne khud ye ride post ki hai, isliye yahan nahi dikhegi. "My Rides" check karein.</p>';
+                }
+            } else {
+                // Agar match na mile toh global active rides dikhayein
+                fetchGlobalRides(user.uid);
+            }
+        }, err => {
+            console.error("Firebase Error:", err);
+            resultsDiv.innerHTML = '<p style="color:red; text-align:center;">Kuch technical galti hui hai.</p>';
+        });
+}
+
+// 3. Agar specific route na mile toh kuch rides dikhane ke liye
+async function fetchGlobalRides(uid) {
+    const resultsDiv = document.getElementById('rideResults');
+    const snap = await db.collection("rides")
+        .where("status", "==", "Active")
+        .limit(5)
+        .get();
+    
+    const otherFiltered = snap.docs.filter(doc => doc.data().driverId !== uid);
+    
+    if(otherFiltered.length > 0) {
+        renderRides(otherFiltered, "📍 Filhaal ye safar mil rahe hain:");
+    } else {
+        resultsDiv.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">Abhi koi bhi safar active nahi hai. Thodi der baad check karein.</p>';
+    }
+}
+
+// 4. Rides ko screen par dikhane ke liye (Render Function)
+function renderRides(snapshotOrArray, title) {
+    const resDiv = document.getElementById('rideResults');
+    const titleDiv = document.getElementById('resultsTitle');
+    
+    titleDiv.innerText = title;
+    titleDiv.style.display = "block";
+    resDiv.innerHTML = "";
+
+    snapshotOrArray.forEach(doc => {
+        const r = doc.data ? doc.data() : doc;
+        const rid = doc.id;
+        
+        // Fare calculation (Commission ke saath)
+        const displayFare = r.totalFare || Math.round(r.driverFare * 1.15);
+        const genderIcon = r.gender === "Male" ? "♂️" : "♀️";
+
+        resDiv.innerHTML += `
+            <div class="ride-item" onclick="window.location.href='ride-details.html?id=${rid}'">
+                <div class="fare-badge">₹${displayFare}</div>
+                <div style="font-weight: 800; font-size: 16px;">
+                    ${genderIcon} ${r.driverName} 
+                    <span style="font-size: 10px; background: #f0f0f0; padding: 2px 6px; border-radius: 5px; margin-left: 5px;">
+                        ${r.gender}
+                    </span>
+                </div>
+                <div style="font-size: 12px; color: #64748B; margin-top: 8px;">
+                    <i class="fas fa-car" style="color:var(--teal-blue)"></i> <b>${r.vehicle}</b> <br>
+                    <i class="fas fa-clock" style="color:var(--teal-blue)"></i> Time: ${r.timeSlot} <br>
+                    <i class="fas fa-chair" style="color:var(--teal-blue)"></i> Seats: <b>${r.availableSeats}</b>
+                </div>
+                <div style="margin-top: 10px; border-top: 1px solid #f0f0f0; padding-top: 8px; font-size: 11px; color: var(--accent);">
+
+<i class="fas fa-map-marker-alt"></i> 
+<b>Pickup:</b> ${r.pickupPoint}, ${r.fromBlock}, ${r.fromDist}
+
+<br>
+
+<i class="fas fa-flag-checkered"></i> 
+<b>Drop:</b> ${r.toBlock}, ${r.toDist}
+
+</div>
+            </div>`;
+    });
+}
+// --- YAHAN TAK ---
+        
+
+function showMessage(msg) {
+    document.getElementById('modalMsg').innerText = msg;
+    document.getElementById('noRideModal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('noRideModal').style.display = 'none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Ride | RidePartner</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+:root{
+--primary:#0D273D;
+--secondary:#3E6985;
+--accent:#059669;
+--bg:#F1F5F9;
+}
+body{
+font-family:'Plus Jakarta Sans',sans-serif;
+margin:0;
+background:var(--bg);
+color:var(--primary);
+}
+.header{
+background:var(--primary);
+color:#fff;
+padding:35px 20px 70px;
+text-align:center;
+border-radius:0 0 40px 40px;
+}
+.container{
+max-width:480px;
+margin:-50px auto 40px;
+padding:0 15px;
+}
+.card{
+background:#fff;
+border-radius:28px;
+padding:25px;
+box-shadow:0 20px 40px rgba(0,0,0,0.08);
+}
+.route{
+text-align:center;
+border-bottom:1px dashed #CBD5E1;
+padding-bottom:15px;
+margin-bottom:20px;
+}
+.route h3{
+margin:5px 0 0;
+font-weight:800;
+}
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+}
+.info{
+background:#F8FAFC;
+padding:12px;
+border-radius:16px;
+border:1px solid #E2E8F0;
+}
+.label{
+font-size:11px;
+font-weight:700;
+color:#64748B;
+display:block;
+margin-bottom:4px;
+text-transform:uppercase;
+}
+.value{
+font-weight:700;
+font-size:14px;
+}
+.fare-box{
+margin-top:20px;
+background:var(--primary);
+color:#fff;
+padding:20px;
+border-radius:20px;
+text-align:center;
+}
+.fare-box h2{
+margin:5px 0 0;
+color:#34D399;
+font-size:32px;
+}
+input{
+width:100%;
+padding:15px;
+margin-top:12px;
+border-radius:14px;
+border:1.5px solid #E2E8F0;
+font-size:14px;
+outline:none;
+}
+input:focus{
+border-color:var(--secondary);
+}
+button{
+width:100%;
+margin-top:20px;
+padding:18px;
+border:none;
+border-radius:18px;
+background:var(--secondary);
+color:#fff;
+font-weight:700;
+font-size:15px;
+cursor:pointer;
+box-shadow:0 10px 20px rgba(62,105,133,0.3);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h2>Confirm Your Ride</h2>
+<p style="opacity:.8;font-size:13px;">Please verify details carefully</p>
+</div>
+
+<div class="container">
+<div class="card">
+
+<div class="route">
+<span class="label">Trip Route</span>
+<h3 id="routeDisplay">Loading...</h3>
+</div>
+
+<div class="grid">
+<div class="info">
+<span class="label">Driver Name</span>
+<span class="value" id="dName">-</span>
+</div>
+<div id="prefSection" style="margin-top: 20px; display: none;">
+    <span class="label">Ride Amenities & Rules</span>
+    <div id="prefList" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+        </div>
+</div>
+
+<div id="safetyBadge" style="margin-top: 15px; display: none; background: #ECFDF5; border: 1px solid #10B981; padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 8px;">
+    <i class="fas fa-shield-alt" style="color: #059669;"></i>
+    <span style="font-size: 11px; font-weight: 700; color: #065F46;">VERIFIED SAFETY COMMITMENT</span>
+</div>
+
+<div class="info">
+<span class="label">Gender</span>
+<span class="value" id="dGender">-</span>
+</div>
+
+<div class="info">
+<span class="label">Vehicle</span>
+<span class="value" id="vModel">-</span>
+</div>
+
+<div class="info">
+<span class="label">Seats Left</span>
+<span class="value" id="vSeats">-</span>
+</div>
+
+<div class="info">
+<span class="label">Date</span>
+<span class="value" id="rDate">-</span>
+</div>
+
+<div class="info">
+<span class="label">Time</span>
+<span class="value" id="rTime">-</span>
+</div>
+</div>
+
+<div class="fare-box">
+<span class="label">Total Fare</span>
+<h2 id="totalFare">₹0</h2>
+</div>
+
+<h4 style="margin-top:25px;">Your Travel Details</h4>
+<form id="bookingForm">
+    <input type="text" id="pName" placeholder="Full Name" required>
+
+    <select id="pGender" required style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;">
+      <option value="">Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
+
+    <input type="number" id="pSeats" placeholder="How many seats?" min="1" required style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;">
+
+    <input type="text" id="pPickup" placeholder="Your Pickup Point" required style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;">
+
+    <input type="text" id="pDrop" placeholder="Your Drop Point" required style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;">
+
+    <input type="tel" id="pPhone" placeholder="Mobile Number" maxlength="10" pattern="[0-9]{10}" required style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;">
+
+    <textarea id="pNote" placeholder="Any message for driver (optional)" style="width:100%;padding:15px;margin-top:12px;border-radius:14px;border:1.5px solid #E2E8F0;"></textarea>
+
+    <button type="submit">Send Ride Request</button>
+</form>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+// ✅ YOUR ORIGINAL WORKING FIREBASE CONFIG
+const firebaseConfig = {
+    apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+    authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+    projectId: "ridepartner-safarsaathi-9ccb2",
+    appId: "1:79836817761:web:d59c72958158931868fd20"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+const params = new URLSearchParams(window.location.search);
+const rid = params.get('id');
+
+if(!rid){
+    Swal.fire("No Ride Selected","Please select a ride first","warning")
+    .then(()=>window.location.href="findride.html");
+}
+
+let availableSeats = 0;
+let rideDate = "";
+let rideTime = "";
+let driverUid = "";
+
+// ✅ LOAD RIDE DATA CORRECTLY (FIXED BLOCK)
+db.collection("rides").doc(rid).get().then(doc => {
+    if (doc.exists) {
+        const data = doc.data();
+
+        // Global variables update karein taaki request bhejte waqt kaam aayein
+        availableSeats = data.availableSeats || 0;
+        driverUid = data.driverId || "";
+        rideDate = data.date || "";
+        rideTime = data.timeSlot || "";
+
+        // UI par data dikhana shuru karein
+        const pickup = data.pickupPoint || data.fromBlock || "Unknown";
+        const drop = data.dropPoint || data.toBlock || "Unknown";
+        document.getElementById('routeDisplay').innerText = pickup + " ➔ " + drop;
+
+        document.getElementById('dName').innerText = data.driverName || "-";
+        document.getElementById('dGender').innerText = data.gender || "-";
+        document.getElementById('vModel').innerText = data.vehicle || "Vehicle";
+        document.getElementById('vSeats').innerText = availableSeats;
+        document.getElementById('rDate').innerText = rideDate;
+        document.getElementById('rTime').innerText = rideTime;
+
+        // Fare Calculation
+        const fare = Number(data.driverFare || 0);
+        const commission = Math.round(fare <= 500 ? fare * 0.1 : fare * 0.15);
+        document.getElementById('totalFare').innerText = "₹" + (fare + commission);
+
+        // ✅ Preferences (Icons) display karein
+        if (data.preferences) {
+            document.getElementById('prefSection').style.display = 'block';
+            const prefList = document.getElementById('prefList');
+            prefList.innerHTML = ""; 
+
+            const mapping = {
+                ac: { icon: "❄️", text: "AC" },
+                music: { icon: "🎵", text: "Music" },
+                luggage: { icon: "🎒", text: "Luggage" },
+                noSmoking: { icon: "🚫", text: "No Smoking" }
+            };
+
+            for (let key in data.preferences) {
+                if (data.preferences[key] === true) {
+                    prefList.innerHTML += `
+                        <span style="background:#F1F5F9; padding:6px 12px; border-radius:10px; font-size:12px; font-weight:600; border:1px solid #E2E8F0;">
+                            ${mapping[key].icon} ${mapping[key].text}
+                        </span>`;
+                }
+            }
+        }
+
+        // ✅ Safety Badge dikhao
+        if (data.safetyConfirmed === true) {
+            document.getElementById('safetyBadge').style.display = 'flex';
+        }
+
+    } else {
+        Swal.fire("Error","Ride details nahi mili","error");
+    }
+}).catch(error => {
+    console.error(error);
+    Swal.fire("Error","Data load nahi ho paya","error");
+});
+
+// ✅ UPDATED BOOKING LOGIC (With Duplicate Check & Success Popup)
+document.getElementById('bookingForm').onsubmit = async function(e) {
+    e.preventDefault(); 
+
+    const btn = e.target.querySelector('button');
+    const pName = document.getElementById('pName').value.trim();
+    const pGender = document.getElementById('pGender').value;
+    const pSeats = parseInt(document.getElementById('pSeats').value);
+    const pPickup = document.getElementById('pPickup').value.trim();
+    const pDrop = document.getElementById('pDrop').value.trim();
+    const pPhone = document.getElementById('pPhone').value.trim();
+    const pNote = document.getElementById('pNote').value.trim();
+    const user = auth.currentUser;
+
+    if(!user) {
+        Swal.fire("Login Required", "Kripya pehle login karein", "error");
+        return;
+    }
+
+    if(pSeats > availableSeats){
+        Swal.fire("Seats Full", "Maafi! Sirf " + availableSeats + " seats hi bachi hain.", "warning");
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.innerText = "Bheja ja raha hai...";
+
+        // --- 1. DUPLICATE CHECK (Ek hi ride ke liye do baar request nahi) ---
+        const duplicateCheck = await db.collection("booking_requests")
+            .where("rideId", "==", rid)
+            .where("passengerUid", "==", user.uid)
+            .where("status", "==", "Pending")
+            .get();
+
+        if (!duplicateCheck.empty) {
+            Swal.fire("Intezar Karein", "Aapne is safar ke liye pehle hi request bhej di hai. Driver ke jawab ka intezar karein.", "info");
+            btn.disabled = false;
+            btn.innerText = "Send Ride Request";
+            return;
+        }
+
+        // --- 2. SEND REQUEST ---
+        await db.collection("booking_requests").add({
+            rideId: rid,
+            driverUid: driverUid,
+            passengerUid: user.uid,
+            passengerName: pName,
+            passengerGender: pGender,
+            requestedSeats: pSeats,
+            pickupPoint: pPickup,
+            dropPoint: pDrop,
+            passengerPhone: pPhone,
+            passengerNote: pNote || "",
+            rideDate: rideDate,
+            rideTime: rideTime,
+            status: "Pending",
+            requestTime: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // --- 3. SUCCESS POPUP ---
+        Swal.fire({
+            title: "🎉 Request Bheji Gayi!",
+            text: "Driver ko aapka message mil gaya hai. Jaise hi wo accept karenge, aapko notification mil jayega.",
+            icon: "success",
+            confirmButtonColor: "#059669",
+            confirmButtonText: "Theek Hai"
+        }).then(() => {
+            window.location.href = "passengerdashboard.html"; // Ya jahan aap bhejna chahein
+        });
+
+    } catch(error) {
+        console.error("Booking Error:", error);
+        Swal.fire("Error", "Kuch technical galti hui. Phir koshish karein.", "error");
+        btn.disabled = false;
+        btn.innerText = "Send Ride Request";
+    }
+};
+
+</script>
+</body>
+</html>

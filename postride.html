@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Safar | RidePartner Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --yankees-blue: #0D273D; --teal-blue: #3E6985; --bg: #F1F5F9; --white: #ffffff; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--yankees-blue); }
+        .header { background: var(--yankees-blue); color: white; padding: 20px; text-align: center; border-radius: 0 0 30px 30px; }
+        .container { max-width: 450px; margin: auto; padding: 15px; }
+        .card { background: var(--white); padding: 20px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(13, 39, 61, 0.05); }
+        h4 { font-size: 13px; text-transform: uppercase; color: var(--teal-blue); margin: 0 0 15px 0; }
+        input, select { width: 100%; padding: 14px; border: 1.5px solid #E2E8F0; border-radius: 16px; font-size: 15px; box-sizing: border-box; margin-bottom: 12px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .price-display { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 20px; border-left: 5px solid var(--teal-blue); }
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+        .price-row.total { font-weight: 700; font-size: 18px; color: var(--yankees-blue); border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        .btn-live { width: 100%; padding: 18px; background: var(--teal-blue); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 16px; cursor: pointer; }
+        #blockModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center; }
+    </style>
+</head>
+<body>
+
+    
+<div style="background: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #CDD7DF;">
+    <span style="font-weight: 700; font-size: 14px;">💰 WALLET BALANCE:</span>
+    <span id="walletBal" style="font-weight: 800; color: #059669; font-size: 18px;">₹50</span>
+</div>
+
+<div class="header">
+    <h2 style="margin:0;">Post Safar</h2>
+    <p style="margin:5px 0 0 0; font-size: 12px; opacity: 0.8;">RidePartner Pro - MP Ki Apni App</p>
+</div>
+
+<div id="blockModal">
+    <div class="card" style="width: 80%; text-align: center;">
+        <h2 style="color: #e11d48;">⚠️ ID Blocked!</h2>
+        <p>Aapka balance commission se kam hai. Recharge karein.</p>
+        <button onclick="window.location.href='profile.html'" class="btn-live">Recharge Now</button>
+    </div>
+</div>
+
+<div class="container">
+    <form id="proRideForm">
+        <div class="card">
+            <h4>👤 DRIVER DETAILS</h4>
+            <input type="text" id="dName" placeholder="Driver Name" required>
+            
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <span style="background: #E2E8F0; padding: 14px; border-radius: 16px; font-weight: 700; display: flex; align-items: center;">+91</span>
+                <input type="tel" id="dPhone" placeholder="Mobile Number (10 Digit)" maxlength="10" required style="margin-bottom:0;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--teal-blue);">GENDER:</span>
+                <div style="display: flex; gap: 20px; margin-top: 5px;">
+                    <label><input type="radio" name="gender" value="Male" checked> Male</label>
+                    <label><input type="radio" name="gender" value="Female"> Female</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <select id="vType" required>
+                    <option value="" disabled selected>Select Vehicle</option>
+                    <option value="Car">🚗 Car</option>
+                    <option value="Bike">🏍️ Bike</option>
+                    <option value="Scooty">🛵 Scooty</option>
+                </select>
+                <input type="text" id="cNo" placeholder="MP04XX0000" required style="text-transform: uppercase;">
+            </div>
+        </div>
+
+        <div class="card">
+    <h4>📍 ROUTE & STOPS</h4>
+    
+    <div style="margin-bottom: 15px;">
+        <p style="font-size: 11px; font-weight: bold; color: var(--teal-blue); margin-bottom: 5px;">PICKUP LOCATION (Kahan se)</p>
+        <div class="row">
+            <select id="fromDist" onchange="updateBlocks('from')" required><option value="">District</option></select>
+            <select id="fromBlock" required><option value="">Block</option></select>
+        </div>
+        <input type="text" id="pickupPoint" placeholder="Pickup Point (e.g. Railway Station, Main Market)" required style="margin-top: 10px;">
+    </div>
+
+    <hr style="border:0.5px solid #eee; margin:15px 0;">
+
+    <div>
+        <p style="font-size: 11px; font-weight: bold; color: #059669; margin-bottom: 5px;">DROP LOCATION (Kahan tak)</p>
+        <div class="row">
+            <select id="toDist" onchange="updateBlocks('to')" required><option value="">District</option></select>
+            <select id="toBlock" required><option value="">Block</option></select>
+        </div>
+        <input type="text" id="dropPoint" placeholder="Drop Point (e.g. Bus Stand, Hospital)" required style="margin-top: 10px;">
+        <input type="date" id="rideDate" required>
+        <select id="rideTimeSlot" required style="margin-top: 10px;">
+    <option value=""> Select Time</option>
+    <option value="12-2 AM">12–2 AM</option>
+    <option value="2-4 AM">2–4 AM</option>
+    <option value="4-6 AM">4–6 AM</option>
+    <option value="6-8 AM">6–8 AM</option>
+    <option value="8-10 AM">8–10 AM</option>
+    <option value="10-12 PM">10–12 PM</option>
+    <option value="12-2 PM">12–2 PM</option>
+    <option value="2-4 PM">2–4 PM</option>
+    <option value="4-6 PM">4–6 PM</option>
+    <option value="6-8 PM">6–8 PM</option>
+    <option value="8-10 PM">8–10 PM</option>
+    <option value="10-12 AM">10–12 AM</option>
+</select>
+
+    </div>
+</div>
+<div class="card">
+    <h4>🪑 AVAILABLE SEATS</h4>
+    <input type="number" id="availableSeats" 
+           placeholder="Seats (1-6)" 
+           min="1" 
+           max="6" 
+           required>
+    <p style="font-size: 11px; color: #64748B;">
+        * Maximum 6 seats allowed
+    </p>
+</div>
+
+        <div class="card">
+            <h4>💰 FARE & COMMISSION</h4>
+            <input type="number" id="driverFare"  required oninput="calculateCommission()">
+            <div class="price-display">
+                <div class="price-row"><span>Service Commission:</span><span id="txtComm">₹0</span></div>
+                <div class="price-row total"><span>Total (Passenger Fare):</span><span id="txtTotal">₹0</span></div>
+            </div>
+            <p id="slabNote" style="font-size: 10px; color: #64748B; margin-top: 8px;">* ₹500 tak 10%, usse upar 15% charge.</p>
+        </div>
+<div class="card">
+    <h4>🚗 RIDE PREFERENCES</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+        <label><input type="checkbox" id="pref_music"> 🎵 Music</label>
+        <label><input type="checkbox" id="pref_ac"> ❄️ AC Available</label>
+        <label><input type="checkbox" id="pref_smoking"> 🚫 No Smoking</label>
+        <label><input type="checkbox" id="pref_luggage"> 🎒 Luggage Space</label>
+    </div>
+</div>
+
+<div class="card" style="background: #fff5f5; border: 1px dashed #e11d48;">
+    <h4>🛡️ SAFETY COMMITMENT</h4>
+    <label style="font-size: 12px; display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="safety_check" required style="width: auto; margin-top: 3px;"> 
+        <span>Main confirm karta hoon ki mere paas <b>Valid Driving License</b> hai aur main safely drive karunga.</span>
+    </label>
+</div>
+        <button type="submit" id="btnSubmit" class="btn-live">Safar Live Karein</button>
+    </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+
+<script>
+    // Isse purani dates select nahi hongi
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('rideDate').min = today;
+document.getElementById('rideDate').value = today; // Default aaj ki date
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+        authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+        projectId: "ridepartner-safarsaathi-9ccb2",
+        appId: "1:79836817761:web:d59c72958158931868fd20"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    // --- YEH NAYA BLOCK HAI ---
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        db.collection("drivers_account").doc(user.uid).onSnapshot(doc => {
+            let dues = doc.exists ? (doc.data().commissionDue || 0) : 0; 
+            let totalLimit = 50; 
+            let currentBalance = totalLimit - dues; // Yeh driver ka bacha hua paisa hai
+
+            // Wallet Display update karein
+            const walletEl = document.getElementById('walletBal');
+            walletEl.innerText = `₹${currentBalance}`;
+            walletEl.style.color = currentBalance <= 10 ? "#e11d48" : "#059669";
+
+            // AGAR BALANCE 0 YA USSE KAM HAI
+            if (currentBalance <= 0) {
+                document.getElementById('blockModal').style.display = 'flex';
+                // Form ko hide kar dete hain taaki koi piche se na dekh sake
+                document.querySelector('.container').style.opacity = '0.2';
+                document.getElementById('btnSubmit').disabled = true;
+            } else {
+                document.getElementById('blockModal').style.display = 'none';
+                document.querySelector('.container').style.opacity = '1';
+                document.getElementById('btnSubmit').disabled = false;
+            }
+            
+            window.driverRealBalance = currentBalance;
+        });
+    } else {
+        window.location.href = "login.html";
+    }
+});
+
+// --- YEH BLOCK KHATAM ---
+
+    const locationData = {
+   
+  "Agar Malwa": ["Agar","Badod","Nalkheda","Susner"],
+  "Alirajpur": ["Alirajpur", "Jobat", "Sondwa", "Udaigarh", "Chandra Shekhar Azad Nagar (Bhabhra)", " Kathiwada"],
+  "Anuppur": ["Anuppur", "Jaithari", "Kotma", "Pushprajgarh"],
+  "Ashoknagar": ["Ashoknagar", "Chanderi", "Isagarh", "Mungaoli"],
+  "Balaghat": ["Balaghat", "Baihar", "Birsa", "Katangi", "Kirnapur", "Lanji", "Paraswada", "Waraseoni"],
+  "Barwani": ["Barwani", "Anjad", "Niwali", "Pati", "Rajpur", "Sendhwa"],
+  "Betul": ["Betul", "Amla", "Athner", "Bhainsdehi", "Chicholi", "Ghoda Dongri", "Multai", "Prabhat Pattan", "Shahpur"],
+  "Bhind": ["Bhind", "Ater", "Bhitarwar", "Gohad", "Lahar", "Mehgaon", "Raon"],
+  "Bhopal": ["Huzur", "Berasia", "Phanda"],
+  "Burhanpur": ["Burhanpur", "Khaknar"],
+  "Chhatarpur": ["Bada Malhera", "Bijawar", "Buxwaha", "Chhatarpur", "Gaurihar", "Laundi", "Nowgong", "Rajnagar"],
+  "Chhindwara": ["Amarwara", "Bichhua", "Chaurai", "Chhindwara", "Harrai", "Jamai", "Mohkhed", "Pandhurna", "Parasia", "Sausar", "Tamia"],
+  
+  "Damoh": ["Batiyagarh", "Damoh", "Hatta", "Jabera", "Patharia", "Tendukheda"],
+  "Datia": ["Bhander", "Datia", "Seondha"],
+  "Dewas": ["Bagli", "Dewas", "Kannod", "Khategaon", "Sonkatch"],
+  "Dhar": ["Badnawar", "Dhar", "Dharampuri", "Gandhwani", "Kukshi", "Manawar", "Nalchha", "Sardarpur", "Tirla"],
+  "Dindori": ["Dindori", "Bajag", "Karanjiya", "Mehandwani", "Samnapur", "Shahpura"],
+  
+  "Guna": ["Aron", "Bamori", "Chachaura", "Guna", "Raghogarh"],
+  "Gwalior": ["Bhitarwar", "Dabra", "Ghatigaon", "Morar"],
+  
+  "Harda": ["Harda", "Khirkiya", "Timarni"],
+  "Indore": ["Depalpur", "Indore", "Mhow", "Sanwer"],
+  
+  "Jabalpur": ["Jabalpur", "Kundam", "Majholi", "Panagar", "Patan", "Shahpura", "Sihora"],
+  "Jhabua": ["Jhabua", "Meghnagar", "Petlawad", "Ranapur", "Rama", "Thandla"],
+  
+  "Katni": ["Badwara", "Bahoriband", "Dhimarkheda", "Katni", "Rithi", "Vijayraghavgarh"],
+  "Khandwa": ["Baladi", "Chhaigaon Makhan", "Harsud", "Khalwa", "Khandwa", "Pandhana"],
+  "Khargone": ["Barwah", "Bhagwanpura", "Bhikangaon", "Gogaon", "Jhirnya", "Kasrawad", "Khargone", "Maheshwar", "Segaon", "Ziranya"],
+  
+  "Maihar": ["Maihar", "Amarpatan", "Ramnagar"],
+  "Mandla": ["Bichhiya", "Ghughri", "Mandla", "Mawai", "Nainpur", "Narayanganj"],
+  "Mandsaur": ["Bhanpura", "Garoth", "Malhargarh", "Mandsaur", "Sitamau"],
+  "Morena": ["Ambah", "Joura", "Kailaras", "Morena", "Porsa", "Sabalgarh"],
+  "Narmadapuram": ["Narmadapuram", "Itarsi", "Seoni Malwa", "Makhan Nagar", "Sohagpur", "Pipariya", "Bankhedi"],
+  "Narsinghpur": ["Babai Chichli", "Chawarpatha", "Gadarwara", "Gotegaon", "Kareli", "Narsinghpur", "Saikheda"],
+  "Neemuch": ["Jawad", "Manasa", "Neemuch"],
+  "Niwari": ["Niwari", "Orchha", "Prithvipur"],
+  
+  "Panna": ["Ajaigarh", "Gunour", "Panna", "Pawai", "Shahnagar"],
+  "Pandhurna": ["Pandhurna", "Sausar"],
+  
+  "Raisen": ["Begumganj", "Gairatganj", "Obedullaganj", "Raisen", "Sanchi", "Silwani", "Udaipura"],
+  "Rajgarh": ["Biaora", "Jirapur", "Khilchipur", "Narsinghgarh", "Rajgarh", "Sarangpur"],
+  "Ratlam": ["Alot", "Bajna", "Jaora", "Piploda", "Ratlam", "Sailana"],
+  "Rewa": ["Gangev", "Hanumana", "Jawa", "Mauganj", "Naigarhi", "Raipur Karchuliyan", "Rewa", "Sirmour", "Teonthar"],
+  
+  "Sagar": ["Banda", "Bina", "Deori", "Jaisinagar", "Khurai", "Malthone", "Rahatgarh", "Rehli", "Sagar", "Shahgarh"],
+  "Satna": ["Amarpatan", "Maihar", "Nagod", "Ramnagar", "Rampur Baghelan", "Satna", "Sohawal", "Unchehara"],
+  "Sehore": ["Ashta", "Budni", "Ichhawar", "Jawar", "Nasrullaganj", "Sehore"],
+  "Seoni": ["Barghat", "Chhapara", "Dhanora", "Ghansaur", "Kurai", "Lakhnadon", "Seoni"],
+  "Shahdol": ["Beohari", "Burhar", "Gohparu", "Jaisinghnagar", "Shahdol", "Sohagpur"],
+  "Shajapur": ["Agar", "Badod", "Gulana", "Kalapipal", "Moman Badodia", "Shajapur", "Shujalpur"],
+  "Sheopur": ["Badoda", "Karahal", "Sheopur", "Vijaypur"],
+  "Shivpuri": ["Badarwas", "Karera", "Khaniyadhana", "Kolaras", "Narwar", "Pichhore", "Pohri", "Shivpuri"],
+  "Sidhi": ["Chitrangi", "Gopad Banas", "Kusmi", "Majhauli", "Rampur Naikin", "Sihawal", "Sidhi"],
+  "Singrauli": ["Baidhan", "Chitrangi", "Deosar"],
+  "Tikamgarh": ["Baldevgarh", "Jatara", "Niwari", "Palera", "Prithvipur", "Tikamgarh"],
+
+ 
+  "Ujjain": ["Badnagar", "Ghatiya", "Khachrod", "Mahidpur", "Tarana", "Ujjain"],
+  
+  "Umaria": ["Bandhavgarh", "Karkeli", "Manpur", "Pali"],
+  
+  "Vidisha": ["Basoda", "Ganj Basoda", "Gyaraspur", "Kurwai", "Lateri", "Nateran", "Sironj", "Vidisha"]
+        
+    };
+
+    function init() {
+        const fromD = document.getElementById('fromDist');
+        const toD = document.getElementById('toDist');
+        Object.keys(locationData).sort().forEach(d => {
+            let opt = `<option value="${d}">${d}</option>`;
+            fromD.innerHTML += opt; toD.innerHTML += opt;
+        });
+    }
+    init();
+
+    function updateBlocks(type) {
+        const dist = document.getElementById(type + 'Dist').value;
+        const blockSel = document.getElementById(type + 'Block');
+        blockSel.innerHTML = '<option value="">Block</option>';
+        if(dist && locationData[dist]) {
+            locationData[dist].sort().forEach(b => {
+                blockSel.innerHTML += `<option value="${b}">${b}</option>`;
+            });
+        }
+    }
+
+    // SLAB LOGIC: 500 tak 10%, usse zyada 15%
+    function calculateCommission() {
+        let fare = Number(document.getElementById('driverFare').value);
+        let commPercent = fare <= 500 ? 0.10 : 0.15;
+        let comm = Math.round(fare * commPercent);
+        
+        document.getElementById('txtComm').innerText = "₹" + comm + " (" + (commPercent * 100) + "%)";
+        document.getElementById('txtTotal').innerText = "₹" + (fare + comm);
+        return comm;
+    }
+    function showFareSuggestion() {
+    const from = document.getElementById('fromBlock').value;
+    const to = document.getElementById('toBlock').value;
+    
+    if(from && to) {
+        // Ek simple logic: MP ke blocks ke beech average fare 150-300 hota hai
+        const suggestText = document.getElementById('slabNote');
+        suggestText.innerHTML = `<span style="color: #059669; font-weight: bold;">💡 Suggestion:</span> Is route ke liye ₹200 - ₹400 sahi rahega.`;
+    }
+}
+
+// In inputs par event listener lagayein
+document.getElementById('fromBlock').addEventListener('change', showFareSuggestion);
+document.getElementById('toBlock').addEventListener('change', showFareSuggestion);
+
+    // Phone 10 digit restrict
+    document.getElementById('dPhone').addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+    });
+
+  // --- YEH WALA BLOCK PURANE ONSUBMIT KI JAGAH LAGA DEIN ---
+document.getElementById('proRideForm').onsubmit = async (e) => {
+    e.preventDefault();
+    
+    const user = auth.currentUser;
+    if (!user) { alert("Pehle Login karein!"); return; }
+    
+    const seats = Number(document.getElementById('availableSeats').value);
+    const comm = calculateCommission();
+    const btn = document.getElementById('btnSubmit');
+    
+    try {
+        // Balance Check Logic
+        if (window.driverRealBalance < comm) {
+            document.getElementById('blockModal').style.display = 'flex';
+            return;
+        }
+
+        btn.disabled = true; 
+        btn.innerText = "Safar Live ho raha hai...";
+
+        // 1. Unique Ride ID Generate karna
+        const rideRef = db.collection("rides").doc(); 
+        const rideId = rideRef.id;
+
+        const rideData = {
+            rideId: rideId,
+            driverId: user.uid,
+            driverName: document.getElementById('dName').value,
+            driverPhone: "+91" + document.getElementById('dPhone').value,
+            gender: document.querySelector('input[name="gender"]:checked').value,
+            vehicle: document.getElementById('vType').value + " (" + document.getElementById('cNo').value.toUpperCase() + ")",
+            
+            // Ye dono fields search filter ke liye bahut zaroori hain
+            pickup: document.getElementById('fromBlock').value, 
+            drop: document.getElementById('toBlock').value,
+            
+            fromBlock: document.getElementById('fromBlock').value,
+            fromDist: document.getElementById('fromDist').value,
+            toBlock: document.getElementById('toBlock').value,
+            toDist: document.getElementById('toDist').value,
+            pickupPoint: document.getElementById('pickupPoint').value,
+            dropPoint: document.getElementById('dropPoint').value,
+            driverFare: Number(document.getElementById('driverFare').value),
+            totalFare: Number(document.getElementById('driverFare').value) + comm,
+            availableSeats: seats,
+            date: document.getElementById('rideDate').value,
+            timeSlot: document.getElementById('rideTimeSlot').value,
+            
+            // Dono status "Active" rakhein taaki koi confusion na ho
+            status: "Active", 
+            rideStatus: "Active",
+            
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            preferences: {
+                music: document.getElementById('pref_music').checked,
+                ac: document.getElementById('pref_ac').checked,
+                noSmoking: document.getElementById('pref_smoking').checked,
+                luggage: document.getElementById('pref_luggage').checked
+            }
+        };
+          
+
+        // 3. Database mein save karna
+        await rideRef.set(rideData);
+
+        // Success Message
+        const driverName = document.getElementById('dName').value;
+        document.getElementById('successMessage').innerText = driverName + ", aapki ride live ho gayi hai! 🚗";
+        document.getElementById('successModal').style.display = "flex";
+
+    } catch (err) { 
+        console.error("Posting error:", err);
+        alert("Error: " + err.message); 
+        btn.disabled = false; 
+        btn.innerText = "Safar Live Karein";
+    }
+};  
+
+function goToMyRides() {
+    window.location.href = "myrides.html";
+}
+       
+</script>
+<div id="successModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:30px; border-radius:24px; width:85%; max-width:350px; text-align:center; animation: pop 0.3s ease;">
+        <h2 style="color:#059669; margin-bottom:10px;">🎉 Congratulations!</h2>
+        <p id="successMessage" style="font-size:15px; margin-bottom:20px;"></p>
+        <button onclick="goToMyRides()" style="padding:14px 25px; background:#3E6985; color:white; border:none; border-radius:16px; font-weight:600;">
+            View My Rides
+        </button>
+    </div>
+</div>
+
+<style>
+@keyframes pop {
+    from { transform: scale(0.7); opacity:0; }
+    to { transform: scale(1); opacity:1; }
+}
+</style>
+</body>
+</html>

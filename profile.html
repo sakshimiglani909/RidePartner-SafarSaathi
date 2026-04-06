@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - RidePartner MP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #0D273D; --accent: #3E6985; --danger: #EF4444; --success: #10B981; --bg: #F8FAFC; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: var(--primary); padding-bottom: 30px; }
+
+        .navbar { background: var(--primary); color: white; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; }
+        .logo span { color: #34D399; }
+        .nav-links { list-style: none; display: flex; gap: 15px; margin: 0; padding: 0; }
+        .nav-links a { color: white; text-decoration: none; font-size: 12px; font-weight: 600; opacity: 0.8; }
+
+        .container { max-width: 480px; margin: 20px auto; padding: 0 15px; }
+        .profile-card { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; }
+
+        /* Wallet Section - Updated for Balance View */
+        .wallet-box { background: white; color: var(--primary); padding: 20px; border-radius: 22px; margin: 20px 0; text-align: center; border: 1.5px solid #E2E8F0; }
+        .amount { font-size: 36px; font-weight: 800; color: var(--primary); margin: 5px 0; }
+        .dues-label { font-size: 11px; color: #64748B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .limit-info { font-size: 12px; color: #94A3B8; margin-top: 8px; border-top: 1px dashed #E2E8F0; padding-top: 8px; }
+
+        /* Status Tags */
+        .status-tag { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; margin-bottom: 15px; }
+
+        /* Action Buttons */
+        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-action { padding: 12px; border-radius: 12px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; transition: 0.2s; }
+        .btn-action:active { transform: scale(0.95); }
+
+        /* Payment Section */
+        #paymentSection { display: none; background: #F0F9FF; border: 2px solid #BAE6FD; padding: 20px; border-radius: 22px; margin: 20px 0; }
+        .qr-container { width: 180px; height: 180px; margin: 15px auto; background: white; padding: 10px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .qr-container img { width: 100%; height: 100%; object-fit: contain; }
+
+        /* History List */
+        .history-card { background: white; border-radius: 22px; padding: 20px; margin-top: 20px; text-align: left; box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #F1F5F9; }
+        .tx-item:last-child { border-bottom: none; }
+        .tx-details b { font-size: 14px; display: block; color: #1E293B; }
+        .tx-details small { color: #94A3B8; font-size: 11px; }
+        .tx-amt { font-size: 15px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<header class="navbar">
+    <h2 class="logo">Ride<span>Partner</span></h2>
+    <ul class="nav-links">
+        <li><a href="postride.html">Post Ride</a></li>
+        <li><a href="myrides.html">My Rides</a></li>
+        <li><a href="Rules">Rules</a></li>
+    </ul>
+</header>
+
+<main class="container">
+    <div class="profile-card">
+        <div id="statusTag" class="status-tag">CHECKING STATUS...</div>
+        <h3 id="profName" style="margin:0;">Driver Name</h3>
+        <p id="profEmail" style="font-size:12px; color:gray;">email@example.com</p>
+
+        <div class="wallet-box">
+            <span class="dues-label">Bacha Hua Balance</span>
+            <div class="amount" id="balanceDisplay">₹--</div>
+            <div class="limit-info" id="duesInfo">Udhari: ₹0.00 | Limit: ₹50</div>
+        </div>
+
+        <div class="action-grid">
+            <button onclick="togglePayment()" class="btn-action" style="background:var(--accent); color:white;">
+                <i class="fas fa-qrcode"></i> Recharge
+            </button>
+            <a id="waLink" href="#" target="_blank" class="btn-action" style="background:#25D366; color:white;">
+                <i class="fab fa-whatsapp"></i> Help / SS
+            </a>
+        </div>
+
+        <div id="paymentSection">
+            <b style="color:var(--accent); font-size: 14px;">Scan to Clear Dues</b>
+            <div class="qr-container">
+                <img src="qr.jpeg" alt="UPI QR">
+            </div>
+            <p style="font-size:12px; color:#0369A1; margin: 5px 0;">UPI ID: <b>sakshi347@axl</b></p>
+            <p style="font-size:10px; color:var(--danger); font-weight: 600;">*Recharge ke baad WhatsApp par Screenshot zarur bhejein.</p>
+        </div>
+
+        <div class="history-card">
+            <b style="font-size:14px; color: var(--primary);"><i class="fas fa-history"></i>History</b>
+            <div id="txHistory" style="margin-top:10px;">
+                <p style="font-size:12px; color:gray; text-align:center; padding: 20px;">Loading history...</p>
+            </div>
+        </div>
+
+        <button onclick="logout()" style="width:100%; background:none; border:1px solid #FED7D7; color:var(--danger); padding:12px; border-radius:12px; margin-top:20px; font-weight:700; cursor:pointer;">Sign Out</button>
+    </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+        authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+        projectId: "ridepartner-safarsaathi-9ccb2",
+        appId: "1:79836817761:web:d59c72958158931868fd20"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            document.getElementById('profName').innerText = user.displayName || "Driver Partner";
+            document.getElementById('profEmail').innerText = user.email;
+            
+            // Setup WhatsApp link for screenshot
+            const waMsg = encodeURIComponent(`Hello Admin, meri ID (${user.uid}) check karein. Maine recharge ka screenshot bheja hai.`);
+            document.getElementById('waLink').href = `https://wa.me/916265973294?text=${waMsg}`;
+            
+            loadProfileData(user.uid);
+        } else {
+            window.location.href = "login.html";
+        }
+    });
+
+    function loadProfileData(uid) {
+        // 1. Live Wallet Calculation (50 - Dues)
+        db.collection("drivers_account").doc(uid).onSnapshot(doc => {
+            let dues = 0;
+            if(doc.exists) {
+                dues = doc.data().commissionDue || 0;
+            } else {
+                // Agar account nahi hai toh naya banayein
+                db.collection("drivers_account").doc(uid).set({ commissionDue: 0 }, { merge: true });
+            }
+
+            const limit = 50;
+            const currentBalance = limit - dues;
+
+            // UI Updates
+            const balDisp = document.getElementById('balanceDisplay');
+            balDisp.innerText = `₹${currentBalance.toFixed(2)}`;
+            document.getElementById('duesInfo').innerText = `Udhari: ₹${dues.toFixed(2)} | Limit: ₹${limit}`;
+            
+            const tag = document.getElementById('statusTag');
+            if(currentBalance <= 0) {
+                tag.innerText = "ID BLOCKED (Low Balance)";
+                tag.style.background = "#FEE2E2";
+                tag.style.color = "var(--danger)";
+                balDisp.style.color = "var(--danger)";
+                document.getElementById('paymentSection').style.display = 'block';
+            } else {
+                tag.innerText = "ID ACTIVE";
+                tag.style.background = "#DCFCE7";
+                tag.style.color = "var(--success)";
+                balDisp.style.color = "var(--primary)";
+            }
+        });
+
+        // 2. Transaction History with Correct Symbols (+/-)
+        db.collection("transactions")
+          .where("driverId", "==", uid)
+          .orderBy("timestamp", "desc")
+          .limit(15)
+          .onSnapshot(snap => {
+            const histDiv = document.getElementById('txHistory');
+            histDiv.innerHTML = '';
+            
+            if(snap.empty) { 
+                histDiv.innerHTML = '<p style="font-size:12px; color:gray; text-align:center; padding:20px;">Abhi koi len-den nahi hua.</p>'; 
+                return; 
+            }
+            
+            snap.forEach(d => {
+                const tx = d.data();
+                // Logic: Commission, Penalty, Booking_fee sab 'Minus' dikhayenge
+                // Sirf 'recharge' ya 'refund' Plus dikhayenge
+                const isNegative = tx.type === 'commission' || tx.type === 'penalty' || tx.type === 'booking_fee';
+                
+                const color = isNegative ? 'var(--danger)' : 'var(--success)';
+                const symbol = isNegative ? '-' : '+';
+                const date = tx.timestamp ? tx.timestamp.toDate().toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) : 'Processing';
+
+         
+// Profile page ki history ka naya logic
+histDiv.innerHTML += `
+<div class="tx-item">
+    <div class="tx-details">
+        <b>${tx.reason && tx.reason !== 'undefined to undefined' ? tx.reason : 'Safar Transaction'}</b>
+        <small>${date}</small>
+    </div>
+    <div class="tx-amt" style="color: ${color}">
+        ${symbol} ₹${tx.amount}
+    </div>
+</div>`;
+
+
+            });
+        });
+    }
+
+    function togglePayment() {
+        const div = document.getElementById('paymentSection');
+        div.style.display = div.style.display === 'none' ? 'block' : 'none';
+        if(div.style.display === 'block') div.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+
+    function logout() { auth.signOut().then(() => window.location.href="login.html"); }
+</script>
+</body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Pro | My Rides & Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #0D273D; --accent: #3E6985; --bg: #F8FAFC; --success: #10B981; --danger: #EF4444; --warning: #F59E0B; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding-bottom: 50px; }
+        
+        /* 1. Header & Wallet Card */
+        .header { background: var(--primary); color: white; padding: 30px 20px 60px; border-radius: 0 0 35px 35px; text-align: center; }
+        .wallet-card { 
+            background: white; width: 85%; margin: -40px auto 20px; border-radius: 25px; 
+            padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center;
+        }
+        .bal-val { font-size: 32px; font-weight: 800; color: var(--primary); margin: 5px 0; }
+        
+        /* 2. Request & Ride Section */
+        .container { padding: 0 15px; max-width: 500px; margin: auto; }
+        .section-title { font-size: 16px; font-weight: 700; color: var(--primary); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+        
+        .card { background: white; border-radius: 22px; padding: 18px; margin-bottom: 15px; border: 1.5px solid #E2E8F0; position: relative; transition: 0.3s; }
+        .card-active { border-color: var(--success); background: #f0fff4; }
+        
+        /* 3. Badges & Info */
+        .status-badge { position: absolute; top: 15px; right: 15px; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 8px; text-transform: uppercase; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; border-bottom: 1px dashed #edf2f7; padding-bottom: 4px; }
+        
+        /* 4. Buttons */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { padding: 12px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-accept { background: var(--success); color: white; }
+        .btn-reject { background: #fee2e2; color: var(--danger); }
+        .btn-cancel { background: white; border: 1.5px solid var(--danger); color: var(--danger); width: 100%; }
+        .btn-chat { background: var(--accent); color: white; width: 100%; }
+
+        /* 5. Chat Modal Styling */
+        #chatBox { display:none; position:fixed; inset:0; background:white; z-index:9999; flex-direction:column; }
+        #msgList { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:10px; background:#f0f2f5; }
+        .msg { max-width: 75%; padding: 12px; border-radius: 15px; font-size: 14px; position: relative; }
+        .msg-me { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg-them { align-self: flex-start; background: white; color: #333; border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 9px; opacity: 0.7; display: block; margin-top: 5px; text-align: right; }
+    </style>
+</head>
+<body>
+  
+
+<div class="header">
+    <h2 style="margin:0;">Driver Control Center</h2>
+</div>
+
+<div class="wallet-card">
+    <div style="font-size:11px; color:gray; font-weight:700;">WALLET BALANCE</div>
+    <div class="bal-val" id="walletBal">₹--</div>
+    <p id="blockStatus" style="font-size:10px; color:var(--danger); display:none; margin:0;">⚠️ Balance kam hai! ID block ho sakti hai.</p>
+</div>
+
+<div class="container">
+    <div id="requestArea" style="display:none;">
+        <div class="section-title"><i class="fas fa-bell fa-beat"></i> Nayi Booking Requests</div>
+        <div id="requestList"></div>
+    </div>
+
+    <div class="section-title"><i class="fas fa-car-side"></i> Active & History Rides</div>
+    <div id="rideList"></div>
+</div>
+
+<div id="chatBox">
+    <div style="background:var(--primary); color:white; padding:15px; display:flex; align-items:center; gap:15px;">
+        <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:20px;"><i class="fas fa-arrow-left"></i></button>
+        <b id="chatWith">Passenger</b>
+    </div>
+    <div id="msgList"></div>
+    <div style="padding:15px; display:flex; gap:10px; border-top:1px solid #EEE;">
+        <input type="text" id="msgInput" placeholder="Safar ki baat karein..." style="flex:1; padding:12px; border-radius:25px; border:1px solid #DDD;">
+        <button onclick="sendMsg()" style="background:var(--success); color:white; border:none; border-radius:50%; width:45px; height:45px;"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+        authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+        projectId: "ridepartner-safarsaathi-9ccb2",
+        appId: "1:79836817761:web:d59c72958158931868fd20"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let curRideId = null;
+
+    auth.onAuthStateChanged(user => {
+        if (!user) { window.location.href="login.html"; return; }
+        
+    
+// Purane code ki jagah ye naya code daalein (Line 100 ke paas)
+db.collection("drivers_account").doc(user.uid).onSnapshot(doc => {
+    if(doc.exists) {
+        const dues = doc.data().commissionDue || 0;
+        const currentBalance = 50 - dues; // Calculation: 50 - udhari
+        
+        document.getElementById('walletBal').innerText = `₹${currentBalance}`;
+        
+        // Agar balance khatam hai toh block pop-up
+        if (currentBalance <= 0) {
+            Swal.fire({
+                title: 'ID Blocked!',
+                text: 'Aapka balance khatam ho gaya hai. Recharge karein.',
+                icon: 'error',
+                confirmButtonText: 'Pay Now',
+                allowOutsideClick: false
+            }).then(() => {
+                window.location.href = "profile.html";
+            });
+        }
+    } else {
+        // Naya driver hai toh 0 dues set karein
+        db.collection("drivers_account").doc(user.uid).set({ commissionDue: 0 }, { merge: true });
+    }
+});
+  
+let lastRequestCount = 0;
+
+db.collection("booking_requests")
+.where("driverUid", "==", user.uid)
+.onSnapshot(snap => {
+
+    const reqList = document.getElementById('requestList');
+    const pending = snap.docs.filter(d => d.data().status === 'Pending');
+
+    // 🔔 NEW REQUEST ALERT
+    if (pending.length > lastRequestCount) {
+
+        Swal.fire({
+            title: "🚗 New Ride Request!",
+            text: "Passenger ne safar ke liye request bheji hai.",
+            icon: "info",
+            confirmButtonText: "OK"
+        });
+
+    }
+
+    lastRequestCount = pending.length;
+
+    reqList.innerHTML = '';
+    document.getElementById('requestArea').style.display = pending.length > 0 ? 'block' : 'none';
+
+
+    pending.forEach(doc => {
+        const r = doc.data();
+     // New Request Card (Number nahi dikhega)
+reqList.innerHTML += `
+<div class="card" style="border-left: 5px solid var(--warning);">
+    <div class="info-row"><b>Passenger:</b> <span>${r.passengerName} (${r.passengerGender})</span></div>
+    <div class="info-row"><b>Seats:</b> <span>${r.requestedSeats} Seat(s)</span></div>
+    <div class="info-row"><b>Pickup:</b> <span>${r.pickupPoint}</span></div>
+    <div class="info-row"><b>Drop:</b> <span>${r.dropPoint}</span></div>
+    
+    <div style="background:#fff7ed; padding:8px; border-radius:8px; font-size:11px; color:#9a3412; margin-top:8px;">
+        <i class="fas fa-lock"></i> Accept karne ke baad hi number dikhega.
+    </div>
+    <div class="btn-grid">
+        <button class="btn btn-accept" onclick="action('${doc.id}', 'Accepted', '${r.rideId}', '${r.passengerPhone}', '${r.passengerName}', '${r.passengerUid}')">ACCEPT</button>
+        <button class="btn btn-reject" onclick="action('${doc.id}', 'Rejected')">REJECT</button>
+    </div>
+</div>`;
+    });
+});
+
+      // --- 3. Watch Active Rides Update ---
+db.collection("rides").where("driverId", "==", user.uid).onSnapshot(snap => {
+    const list = document.getElementById('rideList');
+    list.innerHTML = '';
+    snap.forEach(doc => {
+        const r = doc.data();
+        const rid = doc.id;
+        const isBooked = r.status === 'Booked';
+
+        list.innerHTML += `
+    
+${isBooked ? `
+    <div style="margin-top:10px; padding:10px; background:#f0fff4; border-radius:12px; font-size:13px; border:1px solid #c6f6d5;">
+        <i class="fas fa-user"></i> <b>Passenger:</b> ${r.passengerName}<br>
+        <i class="fas fa-phone-alt"></i> <b>Number:</b> 
+        <a href="tel:${r.passengerPhone}" style="color:var(--success); font-weight:800; text-decoration:none;">
+            ${r.passengerPhone} <i class="fas fa-phone-volume"></i>
+        </a><br>
+    </div>
+    <div class="btn-grid">
+        <button class="btn btn-chat" onclick="openChat('${rid}', '${r.passengerName}')"><i class="fas fa-comment"></i> Chat</button>
+        <button class="btn" style="background:#4285F4; color:white;" onclick="viewPassengerLocation('${r.passengerUid}')"><i class="fas fa-location-dot"></i> Map</button>
+    </div>
+    <div style="margin-top:10px;">
+        ${r.rideStatus !== 'Started' ? 
+            `<button class="btn btn-accept" style="width:100%;" onclick="startRide('${rid}', '${r.otp}')">START RIDE (Enter OTP)</button>` :
+            `<button class="btn" style="width:100%; background:var(--primary); color:white;" onclick="completeRide('${rid}')">FINISH RIDE</button>`
+        }
+    </div>
+    <button class="btn btn-reject" style="width:100%; margin-top:8px; font-size:12px;" onclick="cancelRide('${rid}', ${r.acceptedAt?.toMillis()})">Cancel Booking</button>
+` : `<p style="font-size:11px; color:gray; text-align:center; margin-top:10px;">Safar ka intezaar hai...</p>`}
+        </div>`;
+    });
+});
+
+        // Live Location Tracking
+        startTracking(user.uid);
+    });
+
+    // --- ACTIONS ---
+
+// --- Is function ko update karein ---
+
+
+ // --- Is function ko pura replace karein ---
+async function action(reqId, status, rideId, pPhone, pName, pUid) { 
+    try {
+    await db.collection("booking_requests").doc(reqId).update({ 
+    status: status,
+    passengerSeen: false
+});
+        
+        if(status === 'Accepted') {
+            
+            // 4-digit Random OTP banayein
+            const rideOTP = Math.floor(1000 + Math.random() * 9000);
+
+            await db.collection("rides").doc(rideId).update({ 
+                status: 'Booked', 
+                rideStatus: 'Booked', // Search list se ride ko hatane ke liye
+                passengerPhone: pPhone,
+                passengerName: pName,
+                passengerUid: pUid, // Location ke liye zaroori hai
+                otp: rideOTP, 
+                acceptedAt: firebase.firestore.FieldValue.serverTimestamp() 
+            });
+            // Passenger ko notification bhejna
+await db.collection("notifications").add({
+    passengerUid: pUid,
+    type: "rideAccepted",
+    message: "Driver ne aapki ride request accept kar li hai 🚗",
+    seen: false,
+    time: firebase.firestore.FieldValue.serverTimestamp()
+});
+            
+            Swal.fire('Confirmed', `Safar pakka ho gaya! Passenger se OTP mang kar safar shuru karein.`, 'success');
+        } else {
+            Swal.fire('Rejected', 'Request mana kar di gayi hai.', 'info');
+        }
+    } catch (error) {
+        console.error("Error updating action:", error);
+        Swal.fire("Error", "Kuch gadbad hui!", "error");
+    }
+}
+
+async function cancelRide(rid, acceptedTime) {
+    if(!acceptedTime) {
+        Swal.fire("Error", "Booking time nahi mila!", "error");
+        return;
+    }
+
+    const user = auth.currentUser; // Error yahan tha, ab theek hai
+    const currentTime = Date.now();
+    const timePassed = currentTime - acceptedTime;
+    const oneHour = 60 * 60 * 1000; 
+
+    let penalty = (timePassed < oneHour) ? 10 : 50;
+
+    const { isConfirmed } = await Swal.fire({
+        title: 'Cancel Safar?',
+        text: `Safar cancel karne par ₹${penalty} penalty lagegi.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Haan, Cancel karein',
+        cancelButtonText: 'Nahi'
+    });
+
+    if(isConfirmed) {
+        try {
+            // 1. CommissionDue ko badhayein
+            await db.collection("drivers_account").doc(user.uid).update({
+                commissionDue: firebase.firestore.FieldValue.increment(penalty)
+            });
+
+            // 2. Transaction History mein sahi entry
+            await db.collection("transactions").add({
+                driverId: user.uid,
+                amount: penalty,
+                type: 'penalty',
+                reason: 'Safar Cancel Kiya (Penalty)',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 3. Ride status wapas 'Active' karein taaki dusra koi book kar sake
+            await db.collection("rides").doc(rid).update({ 
+                status: 'Active', 
+                rideStatus: firebase.firestore.FieldValue.delete(),
+                passengerPhone: firebase.firestore.FieldValue.delete(),
+                passengerName: firebase.firestore.FieldValue.delete(),
+                passengerUid: firebase.firestore.FieldValue.delete(),
+                otp: firebase.firestore.FieldValue.delete(),
+                lastCancelledBy: 'Driver'
+            });
+
+            // 4. Booking request ko Cancelled mark karein
+            const reqSnap = await db.collection("booking_requests").where("rideId", "==", rid).get();
+            for (let d of reqSnap.docs) {
+                await d.ref.update({ status: 'CancelledByDriver' });
+            }
+
+            Swal.fire('Cancelled', `₹${penalty} penalty lag gayi hai.`, 'success');
+        } catch (e) {
+            console.error(e);
+            Swal.fire("Error", "Kuch gadbad hui: " + e.message, "error");
+        }
+    }
+}
+
+
+    // --- CHAT SYSTEM ---
+    function openChat(rid, name) {
+        curRideId = rid;
+        document.getElementById('chatWith').innerText = name;
+        document.getElementById('chatBox').style.display = 'flex';
+        db.collection("chats").where("rideId", "==", rid).orderBy("timestamp")
+        .onSnapshot(snap => {
+            const box = document.getElementById('msgList'); box.innerHTML = '';
+            snap.forEach(d => {
+                const m = d.data();
+                const isMe = m.sender === auth.currentUser.uid;
+                box.innerHTML += `<div class="msg ${isMe?'msg-me':'msg-them'}">${m.text}<span class="msg-time">${m.time}</span></div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+    }
+
+    function sendMsg() {
+        const inp = document.getElementById('msgInput');
+        if(!inp.value.trim()) return;
+        db.collection("chats").add({
+            rideId: curRideId, sender: auth.currentUser.uid, text: inp.value,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+        });
+        inp.value = '';
+    }
+    function closeChat() { document.getElementById('chatBox').style.display = 'none'; }
+
+    // --- LOCATION TRACKING ---
+    function startTracking(uid) {
+        navigator.geolocation.watchPosition(pos => {
+            db.collection("driver_locations").doc(uid).set({
+                lat: pos.coords.latitude, lng: pos.coords.longitude,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }, null, { enableHighAccuracy: true });
+    }
+  
+// 1. Passenger ki location dekhne ke liye
+function viewPassengerLocation(pUid) {
+    if (!pUid) {
+        Swal.fire("Maafi", "Passenger ki location jankari nahi mili.", "info");
+        return;
+    }
+    db.collection("passenger_locations").doc(pUid).get().then(doc => {
+        if(doc.exists) {
+            const loc = doc.data();
+            window.open(`https://www.google.com/maps?q=${loc.lat},${loc.lng}`, '_blank');
+        } else {
+            Swal.fire("Not Found", "Passenger ne location share nahi ki hai.", "warning");
+        }
+    });
+}
+
+// 2. OTP mang kar ride start karne ke liye
+async function startRide(rid, correctOtp) {
+    const { value: enteredOtp } = await Swal.fire({
+        title: 'Security Check',
+        input: 'text',
+        inputLabel: 'Passenger se 4-digit OTP lekar yahan dalein',
+        inputPlaceholder: 'OTP Enter Karein',
+        showCancelButton: true
+    });
+
+    if (enteredOtp) {
+        if (enteredOtp == correctOtp) {
+            await db.collection("rides").doc(rid).update({ 
+                rideStatus: 'Started',
+                startTime: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            Swal.fire('Safar Shuru!', 'Safar dhyan se karein.', 'success');
+        } else {
+            Swal.fire('Wrong OTP', 'OTP sahi nahi hai, phir se check karein.', 'error');
+        }
+    }
+}
+async function completeRide(rid) {
+    const { isConfirmed } = await Swal.fire({
+        title: 'Safar Khatam?',
+        text: "Kya aap manjil par pahunch gaye hain?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Haan, Finished'
+    });
+
+    if (isConfirmed) {
+        try {
+            const user = auth.currentUser;
+
+            // 1. Ride ka data fetch karein taaki fare pata chale
+            const rideDoc = await db.collection("rides").doc(rid).get();
+            const rideData = rideDoc.data();
+            const fare = Number(rideData.driverFare || 0);
+            
+            // 2. 10% Commission Calculate karein (e.g., 70 ka 10% = 7)
+            const commissionAmount = Math.round(fare * 0.10); 
+
+            // 3. Ride Status Update karein
+            await db.collection("rides").doc(rid).update({ 
+                rideStatus: 'Completed',
+                status: 'Completed',
+                endTime: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 4. Wallet/Dues Update karein (Asli 10% amount se)
+            await db.collection("drivers_account").doc(user.uid).update({
+                commissionDue: firebase.firestore.FieldValue.increment(commissionAmount)
+            });
+
+            // 5. History mein entry karein
+            await db.collection("transactions").add({
+                driverId: user.uid,
+                amount: commissionAmount,
+                type: 'commission',
+                reason: `Ride Commission (${rideData.pickupPoint || 'N/A'} to ${rideData.dropPoint || 'N/A'})`,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            Swal.fire('Shubhkamnayein!', `Safar khatam! ₹${commissionAmount} commission kat gaya.`, 'success');
+
+        } catch (error) {
+            console.error("Error:", error);
+            Swal.fire("Error", "Ride complete nahi ho saki.", "error");
+        }
+    }
+} // <--- Ye function yahan band hua
+
+// --- FINAL FIX FOR RED LINE ---
+// Apne code ke bilkul niche check karein ki ye brackets aise hi hon:
+</script>
+</body>
+</html>

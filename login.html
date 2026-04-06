@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - RidePartner MP</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --yankees-blue: #0D273D;
+            --teal-blue: #3E6985;
+            --columbia-blue: #CDD7DF;
+            --error-red: #ff4d4d;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background: #f8f9fa; margin: 0; }
+
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }
+        
+        .login-card {
+            background: white; padding: 35px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(13, 39, 61, 0.1);
+            max-width: 400px; width: 100%; border-top: 6px solid var(--yankees-blue);
+            text-align: center;
+        }
+
+        .input-field { margin-bottom: 20px; text-align: left; }
+        .input-field label { display: block; font-size: 13px; font-weight: 600; color: var(--yankees-blue); margin-bottom: 8px; }
+        .input-field input { 
+            width: 100%; padding: 12px; border: 1px solid var(--columbia-blue); 
+            border-radius: 8px; outline: none; box-sizing: border-box; 
+        }
+
+        .btn-login {
+            width: 100%; background: var(--yankees-blue); color: white;
+            padding: 14px; border: none; border-radius: 10px;
+            font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 16px;
+        }
+
+        /* --- Custom Professional Modal --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 39, 61, 0.9); z-index: 10000;
+            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: white; padding: 35px; border-radius: 20px; text-align: center;
+            max-width: 350px; width: 90%; animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .btn-modal {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; margin-top: 20px;
+        }
+    </style>
+</head> 
+<body>
+
+<div id="status-modal" class="modal-overlay">
+    <div class="modal-box" id="modal-content-box">
+        <div id="modal-icon" style="font-size: 50px; margin-bottom: 10px;"></div>
+        <h2 id="modal-title" style="color: var(--yankees-blue); margin: 0;"></h2>
+        <p id="modal-text" style="color: #666; margin-top: 10px; font-size: 14px;"></p>
+        <button id="modal-btn" class="btn-modal"></button>
+    </div>
+</div>
+
+<header>
+    <nav class="navbar" style="padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h2 class="logo" style="margin:0; color: var(--yankees-blue);">Ride<span style="color: var(--teal-blue);">Partner</span></h2>
+    </nav>
+</header>
+
+<main class="login-container">
+    <div class="login-card">
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--yankees-blue); margin: 0; font-size: 26px;">Welcome <span>Back</span></h2>
+            <p style="color: var(--teal-blue); font-size: 14px; margin-top: 5px;">Login karke apna safar shuru karein</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-field">
+                <label>Email Address</label>
+                <input type="email" id="loginEmail" placeholder="example@gmail.com" required>
+            </div>
+            <div class="input-field" style="margin-bottom: 5px;">
+                <label>Password</label>
+                <input type="password" id="loginPass" placeholder="Enter your password" required>
+            </div>
+            
+            <div style="text-align: right; margin-bottom: 20px;">
+                <a href="#" id="forgotPassBtn" style="color: var(--teal-blue); font-size: 13px; text-decoration: none; font-weight: 600;">Forgot Password?</a>
+            </div>
+
+            <button type="submit" id="loginBtn" class="btn-login">Login</button>
+        </form>
+
+        <div style="margin-top: 25px; font-size: 14px; color: #666;">
+            Naya account banana hai? <a href="signup.html" style="color: var(--teal-blue); font-weight: 600; text-decoration: none;">Signup yahan karein</a>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+        authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+        projectId: "ridepartner-safarsaathi-9ccb2",
+        storageBucket: "ridepartner-safarsaathi-9ccb2.firebasestorage.app",
+        messagingSenderId: "79836817761",
+        appId: "1:79836817761:web:d59c72958158931868fd20"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Function to show Professional Popup
+    function showPopup(type, title, message) {
+        const modal = document.getElementById('status-modal');
+        const contentBox = document.getElementById('modal-content-box');
+        const icon = document.getElementById('modal-icon');
+        const titleEl = document.getElementById('modal-title');
+        const textEl = document.getElementById('modal-text');
+        const btn = document.getElementById('modal-btn');
+
+        titleEl.innerText = title;
+        textEl.innerText = message;
+        modal.style.display = 'flex';
+
+        if(type === 'success') {
+            icon.innerText = "👋";
+            contentBox.style.borderTop = "6px solid #28a745";
+            btn.innerText = "Chaliye Shuru Karein";
+            btn.style.background = "#0D273D";
+            btn.style.color = "white";
+            btn.onclick = () => {
+                if(title === 'Reset Link') { modal.style.display = 'none'; }
+                else { window.location.href = 'index.html'; }
+            };
+        } else {
+            icon.innerText = "⚠️";
+            contentBox.style.borderTop = "6px solid #ff4d4d";
+            btn.innerText = "Theek Hai";
+            btn.style.background = "#eee";
+            btn.style.color = "#333";
+            btn.onclick = () => modal.style.display = 'none';
+        }
+    }
+
+    // Forgot Password Logic
+    document.getElementById('forgotPassBtn').onclick = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        if(!email) {
+            showPopup('error', 'Email Missing', 'Kripya pehle apna Email daalein taaki hum reset link bhej sakein.');
+            return;
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showPopup('success', 'Reset Link', `Humne ${email} par password badalne ka link bhej diya hai. Apna inbox check karein.`);
+        } catch (error) {
+            showPopup('error', 'Error', 'Email bhejne mein dikkat aayi. Check karein ki email sahi hai ya nahi.');
+        }
+    };
+
+    // Login Form Submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const pass = document.getElementById('loginPass').value;
+        const btn = document.getElementById('loginBtn');
+
+        btn.innerText = "Verifying...";
+        btn.disabled = true;
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+            const user = userCredential.user;
+            showPopup('success', `Namaste, ${user.displayName || 'Sathi'}!`, "Aapka login safal raha. Safar ke liye taiyar ho jaiye.");
+        } catch (error) {
+            btn.innerText = "Login";
+            btn.disabled = false;
+
+            let msg = "Kuch dikkat aayi hai. Kripya details check karein.";
+            if (error.code === 'auth/user-not-found') { msg = "Ye account nahi mila. Kripya pehle Signup karein."; }
+            else if (error.code === 'auth/wrong-password') { msg = "Galat Password! Kripya sahi password daalein."; }
+            else if (error.code === 'auth/invalid-credential') { msg = "Email ya Password sahi nahi hai."; }
+            
+            showPopup('error', 'Login Fail', msg);
+        }
+    });
+</script>
+</body>
+</html>

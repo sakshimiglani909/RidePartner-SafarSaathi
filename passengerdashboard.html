@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Dashboard | RidePartner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --primary: #0D273D; --secondary: #3E6985; --bg: #F1F5F9; --success: #10B981; --warning: #F59E0B; --danger: #EF4444; }
+        body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); padding: 15px; }
+        .header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h2 { margin: 0; font-weight: 800; color: var(--primary); }
+        .booking-card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); margin-bottom: 18px; border-left: 6px solid #CBD5E1; }
+        .status-booked, .status-started { border-left-color: var(--success); }
+        .status-pending { border-left-color: var(--warning); }
+        .label { font-size: 10px; color: #64748B; text-transform: uppercase; font-weight: 700; display: block; }
+        .val { font-size: 14px; font-weight: 700; color: var(--primary); display: block; margin-bottom: 10px; }
+        .status-badge { font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+        .booked, .started { background: #D1FAE5; color: #065F46; }
+        .pending { background: #FEF3C7; color: #92400E; }
+        .otp-box { background: #F0FDFA; border: 2px dashed #14B8A6; padding: 15px; border-radius: 16px; text-align: center; margin: 15px 0; }
+        .action-btn { background: var(--secondary); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; margin-top: 10px; }
+        #chatBox { display: none; position: fixed; inset: 0; background: white; z-index: 3000; flex-direction: column; }
+        #msgList { flex: 1; overflow-y: auto; padding: 20px; background: #F8FAFC; display: flex; flex-direction: column; gap: 10px; }
+        .msg-bubble { max-width: 80%; padding: 12px; border-radius: 18px; font-size: 14px; }
+        .msg-sent { align-self: flex-end; background: var(--secondary); color: white; border-bottom-right-radius: 2px; }
+        .msg-received { align-self: flex-start; background: #E2E8F0; color: var(--primary); border-bottom-left-radius: 2px; }
+  
+.safety-warning {
+    background: #FFFBEB; /* Light Yellow color alert ke liye */
+    border: 1px solid #F59E0B;
+    padding: 12px;
+    border-radius: 12px;
+    margin: 15px auto;
+    max-width: 90%;
+    color: #92400E;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: blinker 2s linear infinite; /* Choti si blinking animation */
+}
+
+.safety-warning i {
+    font-size: 18px;
+    color: #D97706;
+}
+
+@keyframes blinker {
+    50% { opacity: 0.7; }
+}
+</style>
+  
+</head>
+<body>
+
+
+
+
+<div class="header">
+    <div>
+        <h2>Mere Safar</h2>
+        <p style="color:gray; font-size:12px; margin:0;">Live Ride Status</p>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:15px;">
+        
+        <div style="position:relative; font-size:20px;" onclick="clearNotification()">
+    <i class="fas fa-bell"></i>
+
+    <span id="notifDot" style="
+        position:absolute;
+        top:-2px;
+        right:-2px;
+        width:10px;
+        height:10px;
+        background:red;
+        border-radius:50%;
+        display:none;
+    "></span>
+</div>
+
+        <button onclick="auth.signOut()" style="background:none; border:none; color:var(--danger); font-weight:700;">
+            Logout
+        </button>
+    </div>
+</div>
+
+
+<div id="bookingsList">
+    <p style="text-align:center; color:gray; margin-top:50px;"><i class="fas fa-spinner fa-spin"></i> Safar ki jankari mil rahi hai...</p>
+</div>
+
+<div id="chatBox">
+    <div style="background:var(--primary); color:white; padding:18px; display:flex; align-items:center; gap:15px;">
+        <i class="fas fa-arrow-left" onclick="closeChat()"></i>
+        <span style="font-weight:700;">Driver Chat</span>
+    </div>
+    <div id="msgList"></div>
+    <div style="padding:15px; border-top:1px solid #ddd; display:flex; gap:10px;">
+        <input type="text" id="msgInput" style="flex:1; padding:12px; border-radius:20px; border:1px solid #ddd;" placeholder="Kucch likhein...">
+        <button onclick="sendMessage()" style="background:var(--secondary); color:white; border:none; border-radius:50%; width:45px; height:45px;"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+  authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+  projectId: "ridepartner-safarsaathi-9ccb2",
+  appId: "1:79836817761:web:d59c72958158931868fd20"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let isFirstLoad = true;
+let currentChatRideId = null;
+
+     
+auth.onAuthStateChanged(user => {
+    if(!user) { window.location.href="login.html"; return; }
+
+
+    // 🔔 Notification Dot Listener
+db.collection("booking_requests")
+.where("passengerUid","==",user.uid)
+.where("status","==","Accepted")
+.where("passengerSeen","==",false)
+.onSnapshot(snap=>{
+
+    const dot = document.getElementById("notifDot");
+
+    if(snap.size > 0){
+        dot.style.display="block";
+    } else {
+        dot.style.display="none";
+    }
+
+});
+
+    // Real-time listener for Passenger's Bookings
+    db.collection("booking_requests")
+    .where("passengerUid", "==", user.uid)
+    .onSnapshot(snap => {
+        const list = document.getElementById("bookingsList");
+        list.innerHTML = ""; // Clear loader
+
+        if(snap.empty) {
+            list.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">Koi active ride nahi mili.</p>`;
+            return;
+        }
+
+        snap.forEach(async (doc) => {
+    const req = doc.data();
+    const docId = doc.id; // Document ki ID nikal li
+
+    // 🔴 DOT HATANE KA LOGIC:
+    // Agar status 'Accepted' hai aur aapne (passenger ne) ise abhi tak nahi dekha
+   
+if (req.status === "Accepted" && req.passengerSeen === false) {
+
+    const dot = document.getElementById("notifDot");
+    if(dot){
+        dot.style.display = "block";
+    }
+
+}
+
+
+    const rid = req.rideId;
+    // ... yahan se aapka niche ka pura code (Ride details fetch karna) bilkul same rahega
+            // Har request ke liye uski main 'Ride' details fetch karein
+            const rideDoc = await db.collection("rides").doc(rid).get();
+            const r = rideDoc.data();
+            const status = req.status; // Pending, Accepted, Rejected, Completed
+
+            let statusColor = "pending";
+            let statusText = "Driver ka Intezar...";
+            
+            if(status === "Accepted") { statusColor = "booked"; statusText = "Driver ne Accept kiya!"; }
+            if(status === "Rejected") { statusColor = "danger"; statusText = "Driver ne Mana kiya"; }
+            if(r && r.rideStatus === "Started") { statusColor = "started"; statusText = "Safar Shuru ho gaya"; }
+            if(status === "Completed") { statusColor = "success"; statusText = "Safar Khatam!"; }
+
+            list.innerHTML += `
+            <div class="booking-card status-${statusColor}">
+                <span class="status-badge ${statusColor}">${statusText}</span>
+                <span class="label">Route</span>
+                <span class="val">${req.pickupPoint} ➔ ${req.dropPoint}</span>
+
+
+${status === 'Accepted' || (r && r.rideStatus === 'Started') ? `
+
+                    <div class="otp-box">
+                        <span class="label">Driver ko ye OTP batayein</span>
+                        <div style="font-size:26px; font-weight:900; color:var(--secondary);">${r ? r.otp || '----' : '----'}</div>
+                    </div>
+                    <div class="safety-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <span><b>Safety Note:</b> OTP tabhi share karein jab aap Driver se mil lein aur unki <b>Gaadi ka Number</b> sahi se check kar lein.</span>
+</div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="action-btn" onclick="openChat('${rid}')"><i class="fas fa-comments"></i> Chat</button>
+                        <button class="action-btn" style="background:var(--success);" onclick="trackDriver('${r ? r.driverId : ""}')"><i class="fas fa-map-marker-alt"></i> Track Driver</button>
+                    </div>
+                ` : ''}
+
+                ${status === 'Rejected' ? `<p style="color:red; font-size:12px; text-align:center;">Ye request reject ho gayi hai.</p>` : ''}
+            </div>`;
+        });
+    });
+});
+
+  
+// --- CHAT SYSTEM (REPLACE OLD FUNCTIONS WITH THIS) ---
+
+// 1. Chat Box Kholne aur Messages dekhne ke liye
+function openChat(rid) {
+    currentChatRideId = rid;
+    document.getElementById('chatBox').style.display = 'flex';
+    
+    // Real-time listener: Jaise hi koi message aayega, turant dikhega
+    db.collection("chats")
+        .where("rideId", "==", rid)
+        .orderBy("timestamp", "asc")
+        .onSnapshot(snap => {
+            const box = document.getElementById('msgList');
+            box.innerHTML = ""; // Purane messages clear karein
+            
+            snap.forEach(m => {
+                const d = m.data();
+                // Driver side par humne 'sender' use kiya hai, isliye yahan bhi 'sender' rahega
+                const isMe = d.sender === auth.currentUser.uid;
+                
+                box.innerHTML += `
+                    <div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-received'}">
+                        ${d.text}
+                        <div style="font-size:9px; opacity:0.6; text-align:right; margin-top:4px;">
+                            ${d.time || ''}
+                        </div>
+                    </div>`;
+            });
+            // Hamesha naye message par scroll karein
+            box.scrollTop = box.scrollHeight;
+        });
+}
+
+// 2. Message Bhejne ke liye
+async function sendMessage() {
+    const inp = document.getElementById('msgInput');
+    const text = inp.value.trim();
+    
+    if(!text || !currentChatRideId) return;
+
+    try {
+        await db.collection("chats").add({
+            rideId: currentChatRideId,
+            sender: auth.currentUser.uid, // Passenger ki ID
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+        });
+        inp.value = ""; // Input khali karein
+    } catch (error) {
+        console.error("Chat Error:", error);
+        Swal.fire("Error", "Message nahi gaya!", "error");
+    }
+}
+
+// 3. Chat Band karne ke liye
+function closeChat() { 
+    document.getElementById('chatBox').style.display = 'none'; 
+}
+
+async function trackDriver(dId) {
+    if(!dId) return Swal.fire("Error", "Driver ID nahi mili", "error");
+    
+    // Driver ki live location fetch karein
+    db.collection("driver_locations").doc(dId).get().then(doc => {
+        if(doc.exists) {
+            const loc = doc.data();
+            // Google Maps URL with lat,lng
+            const mapUrl = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
+            window.open(mapUrl, '_blank');
+        } else {
+            Swal.fire("Off", "Driver ne apni location band kar rakhi hai.", "warning");
+        }
+    });
+}
+function clearNotification(){
+
+auth.onAuthStateChanged(user=>{
+if(!user) return;
+
+db.collection("booking_requests")
+.where("passengerUid","==",user.uid)
+.where("status","==","Accepted")
+.where("passengerSeen","==",false)
+.get()
+.then(snap=>{
+
+snap.forEach(doc=>{
+doc.ref.update({
+passengerSeen:true
+});
+});
+
+document.getElementById("notifDot").style.display="none";
+
+});
+
+});
+
+}
+</script>
+</body>
+</html>

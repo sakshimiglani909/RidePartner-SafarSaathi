@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup - RidePartner MP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --yankees-blue: #0D273D;
+            --teal-blue: #3E6985;
+            --columbia-blue: #CDD7DF;
+            --error-red: #ff4d4d;
+            --success-green: #28a745;
+        }
+
+        body { font-family: 'Poppins', sans-serif; margin: 0; background-color: #f8f9fa; }
+
+        .signup-container {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 90vh; padding: 20px;
+        }
+
+        .signup-card {
+            background: white; padding: 35px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(13, 39, 61, 0.1);
+            max-width: 400px; width: 100%; border-top: 6px solid var(--yankees-blue);
+            text-align: center;
+        }
+
+        .input-field { margin-bottom: 20px; text-align: left; }
+        .input-field label { display: block; font-size: 13px; font-weight: 600; color: var(--yankees-blue); margin-bottom: 8px; }
+        .input-field input, .input-field select { 
+            width: 100%; padding: 12px; border: 1px solid var(--columbia-blue); 
+            border-radius: 8px; outline: none; box-sizing: border-box; transition: 0.3s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .input-field input:focus, .input-field select:focus { border-color: var(--teal-blue); box-shadow: 0 0 5px rgba(62, 105, 133, 0.2); }
+
+        .btn-signup {
+            width: 100%; background: var(--yankees-blue); color: white;
+            padding: 14px; border: none; border-radius: 10px;
+            font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 16px;
+        }
+        .btn-signup:hover { background: var(--teal-blue); }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 39, 61, 0.9); z-index: 10000;
+            justify-content: center; align-items: center; backdrop-filter: blur(5px);
+        }
+
+        .modal-box {
+            background: white; padding: 40px; border-radius: 20px; text-align: center;
+            max-width: 380px; width: 90%; animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        @keyframes popIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-icon { font-size: 50px; margin-bottom: 15px; }
+        .btn-modal {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-weight: 600; cursor: pointer; margin-top: 20px; font-size: 15px;
+        }
+    </style>
+</head> 
+<body>
+
+<div id="error-modal" class="modal-overlay">
+    <div class="modal-box" style="border-top: 6px solid var(--error-red);">
+        <div class="modal-icon">⚠️</div>
+        <h2 style="color: var(--yankees-blue); margin: 0;">Rukiye!</h2>
+        <p id="error-text" style="color: #666; margin-top: 10px; font-size: 14px;"></p>
+        <button class="btn-modal" onclick="closeModal('error-modal')" style="background: #eee; color: #333;">Theek Hai</button>
+    </div>
+</div>
+
+<div id="success-modal" class="modal-overlay">
+    <div class="modal-box" style="border-top: 6px solid var(--success-green);">
+        <div class="modal-icon">🌟</div>
+        <h2 style="color: var(--yankees-blue); margin: 0;">Welcome, <span id="display-name" style="color: var(--teal-blue);">User</span>!</h2>
+        <p style="color: #555; margin-top: 10px; font-size: 14px;">Aapka account successfully ban gaya hai. Ab aap MP mein sasta aur surakshit safar shuru kar sakte hain.</p>
+        <button class="btn-modal" onclick="window.location.href='index.html'" style="background: var(--yankees-blue); color: white;">Chaliye Shuru Karein</button>
+    </div>
+</div>
+
+<header>
+    <nav style="padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <h2 style="margin:0; color: var(--yankees-blue);">Ride<span style="color: var(--teal-blue);">Partner</span></h2>
+        <a href="login.html" style="text-decoration: none; color: var(--teal-blue); font-weight: 600; font-size: 14px;">Login</a>
+    </nav>
+</header>
+
+<main class="signup-container">
+    <div class="signup-card">
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--yankees-blue); margin: 0; font-size: 26px;">Create <span>Account</span></h2>
+            <p style="color: var(--teal-blue); font-size: 13px; margin-top: 5px;">Join MP's Smartest Travel Network</p>
+        </div>
+
+        <form id="signupForm">
+            <div class="input-field">
+                <label>Pura Naam (Full Name)</label>
+                <input type="text" id="userName" placeholder="eg. jayant singh" required>
+            </div>
+
+            <div class="input-field">
+                <label>Gender</label>
+                <select id="userGender" required>
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Purush (Male)</option>
+                    <option value="Female">Mahila (Female)</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+<div class="input-field">
+    <label>Mobile Number</label>
+    <input type="tel" id="userPhone" placeholder="eg. 98XXXXXXXX" pattern="[0-9]{10}" maxlength="10" required oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+</div>
+
+
+            <div class="input-field">
+                <label>Email Address</label>
+                <input type="email" id="signupEmail" placeholder="example@gmail.com" required>
+            </div>
+            
+            <div class="input-field">
+                <label>Password</label>
+                <input type="password" id="signupPass" placeholder="Min 6 characters" required>
+            </div>
+            <div class="input-field">
+    <label>Confirm Password</label>
+    <input type="password" id="confirmPass" placeholder="Re-enter Password" minlength="6" required>
+</div>
+
+            <button type="submit" id="signupBtn" class="btn-signup">Create Account</button>
+        </form>
+
+        <div style="margin-top: 25px; font-size: 14px; color: #666;">
+            Already have an account? <a href="login.html" style="color: var(--teal-blue); font-weight: 600; text-decoration: none;">Login here</a>
+        </div>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    // Naya: Firestore import kiya taaki data save ho sake
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+        authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+        projectId: "ridepartner-safarsaathi-9ccb2",
+        storageBucket: "ridepartner-safarsaathi-9ccb2.firebasestorage.app",
+        messagingSenderId: "79836817761",
+        appId: "1:79836817761:web:d59c72958158931868fd20"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('userName').value;
+        const gender = document.getElementById('userGender').value;
+        const phone = document.getElementById('userPhone').value;
+        if(phone.length !== 10){
+    document.getElementById('error-text').innerText = "Mobile number sirf 10 digit ka hona chahiye.";
+    document.getElementById('error-modal').style.display = 'flex';
+    btn.innerText = "Create Account";
+    btn.disabled = false;
+    return;
+}
+        const email = document.getElementById('signupEmail').value;
+        const pass = document.getElementById('signupPass').value;
+        const confirmPass = document.getElementById('confirmPass').value;
+        const btn = document.getElementById('signupBtn');
+if(pass !== confirmPass){
+    document.getElementById('error-text').innerText = "Password aur Confirm Password same hona chahiye.";
+    document.getElementById('error-modal').style.display = 'flex';
+    return;
+}
+        btn.innerText = "Wait Karein...";
+        btn.disabled = true;
+
+        try {
+            // 1. Create User in Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+            const user = userCredential.user;
+            
+            // 2. Auth Profile Update
+            await updateProfile(user, { displayName: name });
+
+            // 3. Database mein user ki info save karna (Very Important)
+            await setDoc(doc(db, "users", user.uid), {
+                name: name,
+                gender: gender,
+                phone: phone,
+                email: email,
+                uid: user.uid,
+                createdAt: new Date()
+            });
+// 4. Driver wallet auto create (₹50 free)
+await setDoc(doc(db, "drivers", user.uid), {
+    commissionWallet: 50,
+    isBlocked: false,
+    createdAt: new Date()
+});
+            // SUCCESS
+            document.getElementById('display-name').innerText = name;
+            document.getElementById('success-modal').style.display = 'flex';
+
+        } catch (error) {
+            btn.innerText = "Create Account";
+            btn.disabled = false;
+
+            let msg = "Technical dikkat aayi hai. Phir se koshish karein.";
+            if (error.code === 'auth/email-already-in-use') msg = "Ye Email pehle se register hai.";
+            else if (error.code === 'auth/weak-password') msg = "Password kam se kam 6 characters ka rakhein.";
+
+            document.getElementById('error-text').innerText = msg;
+            document.getElementById('error-modal').style.display = 'flex';
+        }
+    });
+    // Signup ke waqt ye wala hissa update karein
+
+</script>
+</body>
+</html>

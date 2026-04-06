@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RidePartner - MP's No. 1 Carpooling</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* 1. CSS VARIABLES & RESET */
+        :root { 
+            --primary: #0D273D; 
+            --accent: #3E6985; 
+            --success: #34D399; 
+            --white: #ffffff; 
+            --bg: #F8FAFC; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--primary); overflow-x: hidden; }
+
+        /* 2. NAVBAR */
+        .navbar { 
+            background: var(--primary); 
+            padding: 15px 5%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .logo { color: var(--white); font-weight: 800; font-size: 22px; cursor: pointer; }
+        .logo span { color: var(--success); }
+
+        /* Desktop Menu */
+        .nav-links { display: flex; list-style: none; gap: 20px; align-items: center; }
+        .nav-links a { color: var(--white); text-decoration: none; font-size: 14px; font-weight: 600; opacity: 0.9; transition: 0.3s; }
+        .nav-links a:hover { color: var(--success); opacity: 1; }
+
+        /* Hamburger Menu Icon */
+        .menu-toggle { display: none; cursor: pointer; flex-direction: column; gap: 5px; z-index: 1100; }
+        .menu-toggle span { width: 28px; height: 3px; background: var(--white); border-radius: 5px; transition: 0.3s; }
+
+        /* 3. HERO SECTION */
+        .hero { padding: 60px 5%; display: flex; align-items: center; justify-content: space-between; gap: 40px; min-height: 80vh; }
+        .hero-text { flex: 1; }
+        .hero-text h1 { font-size: 48px; line-height: 1.2; margin-bottom: 20px; font-weight: 800; }
+        .hero-text h1 span { color: var(--accent); }
+        .hero-text p { font-size: 18px; color: #475569; margin-bottom: 30px; line-height: 1.6; }
+        
+        .hero-img-box { flex: 1; text-align: center; }
+        .hero-img-box img { width: 100%; max-width: 450px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+
+        /* 4. MP BANNER & BUTTONS */
+        .mp-banner { background: #E0F2FE; color: #0369A1; text-align: center; padding: 12px; font-weight: 700; font-size: 14px; }
+        .btn-group { display: flex; gap: 15px; }
+        .main-btn { background: var(--primary); color: white; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: 700; transition: 0.3s; }
+        .main-btn:hover { background: var(--accent); transform: translateY(-3px); }
+
+        /* 5. MOBILE RESPONSIVE (CRITICAL) */
+        @media (max-width: 768px) {
+            .menu-toggle { display: flex; }
+            
+            .nav-links { 
+                position: fixed; top: 0; right: -100%; width: 70%; height: 100vh; 
+                background: var(--primary); flex-direction: column; padding: 100px 30px; 
+                transition: 0.4s ease-in-out; box-shadow: -10px 0 20px rgba(0,0,0,0.2); 
+            }
+            .nav-links.active { right: 0; }
+            .nav-links a { font-size: 18px; width: 100%; display: block; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+
+            .hero { flex-direction: column; text-align: center; padding: 40px 5%; }
+            .hero-text h1 { font-size: 32px; }
+            .hero-text p { font-size: 16px; }
+            .hero-img-box img { max-width: 100%; margin-top: 20px; }
+            .btn-group { justify-content: center; }
+        }
+
+        /* Hamburger Animation */
+        .menu-toggle.is-active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .menu-toggle.is-active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.is-active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="logo">Ride<span>Partner</span></div>
+        
+        <div class="menu-toggle" id="mobile-menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <ul class="nav-links" id="nav-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="profile.html">Profile</a></li>
+          <li style="position:relative;">
+<a href="myrides.html">My Rides</a>
+<span id="rideDot" style="
+display:none;
+position:absolute;
+top:2px;
+right:-8px;
+width:10px;
+height:10px;
+background:red;
+border-radius:50%;
+"></span>
+</li>
+            <li><a href="ride-details.html">Ride Details</a></li>
+           <li style="position:relative;">
+<a href="passengerdashboard.html">Passenger Hub</a>
+
+<span id="passengerDot" style="
+display:none;
+position:absolute;
+top:2px;
+right:-8px;
+width:10px;
+height:10px;
+background:red;
+border-radius:50%;
+"></span>
+
+</li>
+            <li><a href="rules.html" style="color:var(--success)">Rules</a></li>
+            <li><a href="login.html" style="background:var(--success); color:var(--primary); padding:8px 15px; border-radius:8px;">Signup / Login</a></li>
+       <li><a href="help-support.html">Help</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="mp-banner">
+    🚀 MP's Own Network: Bhopal • Indore • Jabalpur • Gwalior
+</div>
+
+<main>
+    <section class="hero">
+        <div class="hero-text">
+            <h1>MP's Trusted <br><span>Ride Sharing</span> Platform</h1>
+            <p>Ab Bhopal se Indore ho ya Jabalpur se Gwalior, saste aur surakshit safar ke liye local logo se judiye.</p>
+            <div class="btn-group">
+                <a href="findride.html" class="main-btn">Find a Ride</a>
+                <a href="postride.html" class="main-btn" style="background:#fff; color:var(--primary); border:2px solid var(--primary);">Offer Ride</a>
+            </div>
+        </div>
+        <div class="hero-img-box">
+            <img src="photo.jpeg" alt="Travel MP">
+        </div>
+    </section>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+apiKey: "AIzaSyDUoVj4rbMh_6qeVF9LbSYctR_G-zbNYkM",
+authDomain: "ridepartner-safarsaathi-9ccb2.firebaseapp.com",
+projectId: "ridepartner-safarsaathi-9ccb2",
+appId: "1:79836817761:web:d59c72958158931868fd20"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+const auth = firebase.auth();
+    const mobileMenu = document.getElementById('mobile-menu');
+    const navList = document.getElementById('nav-list');
+
+    mobileMenu.addEventListener('click', () => {
+        navList.classList.toggle('active');
+        mobileMenu.classList.toggle('is-active');
+    });
+
+    document.addEventListener('click', (e) => {
+    if (!mobileMenu.contains(e.target) && !navList.contains(e.target)) {
+        navList.classList.remove('active');
+        mobileMenu.classList.remove('is-active');
+    }
+});
+
+
+// 🔴 MYRIDES NOTIFICATION DOT
+auth.onAuthStateChanged(user => {
+
+if(!user) return;
+
+db.collection("booking_requests")
+.where("driverUid","==",user.uid)
+.where("status","==","Pending")
+.onSnapshot(snap => {
+
+const dot = document.getElementById("rideDot");
+
+if(snap.size > 0){
+dot.style.display = "block";
+}else{
+dot.style.display = "none";
+}
+
+});
+
+});
+
+
+
+
+
+</script>
+<!-- Feedback Button -->
+<button onclick="openFeedback()" style="
+position:fixed;
+bottom:20px;
+right:20px;
+background:#3E6985;
+color:white;
+padding:12px 18px;
+border:none;
+border-radius:12px;
+font-size:14px;
+cursor:pointer;
+z-index:9999;
+">
+💡 Feedback
+</button>
+<!-- Feedback Popup -->
+<div id="feedbackBox" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+z-index:10000;
+">
+
+<div style="
+background:white;
+width:90%;
+max-width:400px;
+margin:120px auto;
+padding:20px;
+border-radius:12px;
+">
+
+<h3>RidePartner Feedback</h3>
+
+<textarea id="feedbackText" placeholder="Aapko website me kya improve karna chahiye?" style="
+width:100%;
+height:120px;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+"></textarea>
+
+<br><br>
+
+<button onclick="sendFeedback()" style="background:#3E6985;color:white;border:none;padding:8px 14px;border-radius:8px;">Submit</button>
+
+<button onclick="closeFeedback()" style="margin-left:10px;">Close</button>
+
+</div>
+</div>
+<script>
+
+function openFeedback(){
+document.getElementById("feedbackBox").style.display="block";
+}
+
+function closeFeedback(){
+document.getElementById("feedbackBox").style.display="none";
+}
+
+function sendFeedback(){
+
+let text=document.getElementById("feedbackText").value;
+
+if(text.trim()==""){
+alert("Please feedback likhiye");
+return;
+}
+
+firebase.auth().onAuthStateChanged(user => {
+
+db.collection("feedbacks").add({
+
+userId: user ? user.uid : "guest",
+feedback: text,
+time: new Date()
+
+})
+.then(()=>{
+
+showToast();
+
+document.getElementById("feedbackText").value="";
+document.getElementById("feedbackBox").style.display="none";
+
+})
+
+})
+
+}
+
+</script>
+<div id="toastMessage" style="
+position:fixed;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+background:#0D273D;
+color:white;
+padding:12px 20px;
+border-radius:10px;
+font-size:14px;
+display:none;
+z-index:99999;
+">
+Thank you for your feedback! 🎉
+</div>
+<script>
+function showToast(){
+
+let toast = document.getElementById("toastMessage");
+
+toast.style.display = "block";
+
+setTimeout(function(){
+toast.style.display = "none";
+},3000);
+
+}
+// --- IS CODE KO PEHLE WALE RIDE-DOT WALE LOGIC KE NICHE PASTE KAREIN ---
+
+
+// Naya Logic: Driver ke liye bhi aur Passenger ke liye bhi
+auth.onAuthStateChanged(user => {
+    if (!user) return;
+
+    // 1. DRIVER KE LIYE: Jab koi nayi request aaye (Pending)
+    db.collection("booking_requests")
+        .where("driverUid", "==", user.uid)
+        .where("status", "==", "Pending")
+        .onSnapshot(snap => {
+            const dDot = document.getElementById("rideDot");
+            if (dDot) dDot.style.display = snap.size > 0 ? "block" : "none";
+        });
+
+    // 2. PASSENGER KE LIYE: Jab Driver accept kare aur aapne na dekha ho
+    db.collection("booking_requests")
+        .where("passengerUid", "==", user.uid)
+        .where("status", "==", "Accepted")
+        .where("passengerSeen", "==", false) // Ye sabse important line hai
+        .onSnapshot(snap => {
+            const pDot = document.getElementById("passengerDot");
+            if (pDot) pDot.style.display = snap.size > 0 ? "block" : "none";
+        });
+});
+
+</script>
+</body>
+</html>

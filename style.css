@@ -1,0 +1,180 @@
+/* Color Palette from Photo */
+:root {
+    --yankees-blue: #0D273D;
+    --teal-blue: #3E6985;
+    --pewter-blue: #8AA7BC;
+    --pastel-blue: #A6BED1;
+    --columbia-blue: #CDD7DF;
+    --white: #FFFFFF;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+body { background-color: var(--white); color: var(--yankees-blue); overflow-x: hidden; }
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 6%;
+    background: var(--yankees-blue);
+    color: var(--white);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logo span { color: var(--pastel-blue); }
+
+.nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
+.nav-links a { color: var(--white); text-decoration: none; font-size: 0.9rem; font-weight: 400; transition: 0.3s; }
+.nav-links a:hover { color: var(--pastel-blue); }
+
+.verify-link { color: #FFCC00 !important; font-weight: 600 !important; }
+
+/* Hamburger Menu Design */
+.menu-toggle { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+.menu-toggle span { width: 22px; height: 2px; background: var(--white); border-radius: 5px; transition: 0.3s; }
+
+/* Banner */
+.mp-banner {
+    background: var(--columbia-blue);
+    color: var(--yankees-blue);
+    text-align: center;
+    padding: 0.7rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Hero Section */
+.hero { padding: 4rem 6%; background: var(--white); }
+.hero-container { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; gap: 2rem; }
+.hero-text { flex: 1; }
+.hero-text h1 { font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: var(--yankees-blue); }
+.hero-text h1 span { color: var(--teal-blue); }
+.hero-text p { font-size: 1rem; color: var(--teal-blue); margin-bottom: 2rem; font-weight: 300; }
+
+.hero-btns { display: flex; gap: 1rem; }
+.btn-primary { background: var(--yankees-blue); color: var(--white); padding: 0.8rem 1.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: 0.3s; }
+.btn-secondary { border: 2px solid var(--yankees-blue); color: var(--yankees-blue); padding: 0.8rem 1.8rem; border-radius: 8px; text-decoration: none; font-weight: 600; }
+.btn-primary:hover { background: var(--teal-blue); }
+
+.hero-img-box { flex: 1; text-align: right; }
+.hero-img-box img { width: 100%; max-width: 450px; border-radius: 20px; box-shadow: 10px 10px 0px var(--columbia-blue); }
+
+/* Features */
+.features { display: flex; gap: 1.5rem; padding: 3rem 6%; justify-content: center; flex-wrap: wrap; background: #fdfdfd; }
+.feat-card { background: var(--white); padding: 2rem; border-radius: 12px; width: 280px; text-align: center; border-bottom: 4px solid var(--pewter-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+.feat-card .icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+
+/* Mobile Optimization */
+@media (max-width: 900px) {
+    .menu-toggle { display: flex; }
+    .nav-links { 
+        display: none; position: absolute; top: 100%; left: 0; width: 100%; 
+        background: var(--yankees-blue); flex-direction: column; padding: 2rem; text-align: center; gap: 1.5rem;
+    }
+    .nav-links.active { display: flex !important; }
+    .desktop-only { display: none; }
+    .hero-container { flex-direction: column; text-align: center; }
+    .hero-img-box { order: -1; }
+    .hero-text h1 { font-size: 2rem; }
+    .hero-btns { justify-content: center; flex-direction: column; }
+    .auth-m { background: var(--teal-blue); padding: 0.6rem; border-radius: 5px; display: block; }
+}
+
+.signup-btn { background: var(--teal-blue); padding: 0.6rem 1.2rem; border-radius: 6px; color: var(--white) !important; font-weight: 600; }
+.login { color: var(--white); text-decoration: none; margin-right: 1rem; }
+
+/* --- Mobile Responsive Fix --- */
+
+@media (max-width: 768px) {
+    /* 1. Navbar Fix */
+    .navbar {
+        padding: 10px 15px;
+        position: relative;
+    }
+    
+    .nav-links {
+        display: none; /* Mobile menu hidden by default */
+        flex-direction: column;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        background: #0D273D; /* Primary color */
+        padding: 20px 0;
+        z-index: 1000;
+        text-align: center;
+    }
+
+    .nav-links.active {
+        display: flex; /* Click karne par dikhega */
+    }
+
+    .nav-links li {
+        margin: 15px 0;
+    }
+
+    /* 2. Hero Section Fix (Text upar, Image niche) */
+    .hero-container {
+        flex-direction: column !important; /* Row se Column kar diya */
+        text-align: center;
+        padding: 20px;
+    }
+
+    .hero-text h1 {
+        font-size: 28px;
+        line-height: 1.2;
+    }
+
+    .hero-img-box img {
+        width: 100%;
+        max-width: 300px;
+        margin-top: 20px;
+        border-radius: 20px;
+    }
+
+    /* 3. Features Section (Cards ek ke niche ek) */
+    .features {
+        flex-direction: column;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .feat-card {
+        width: 100% !important;
+        margin: 0;
+    }
+
+    /* 4. Desktop Only Elements ko Hide karein */
+    .desktop-only {
+        display: none;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* Menu Toggle Styling */
+.menu-toggle {
+    display: none;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.menu-toggle span {
+    width: 25px;
+    height: 3px;
+    background: #fff;
+    border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+}
